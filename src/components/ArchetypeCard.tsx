@@ -1,5 +1,6 @@
 import Image from "next/image";
-import type { Archetype, CardFamily } from "@/generated/prisma/client";
+import type { Archetype, CardFamily, Tariff } from "@/generated/prisma/client";
+import { canUserAccess } from "@/lib/access";
 
 // Дизайн-ТЗ, раздел 3.1 — рамка и палитра меняются по семье карты.
 const FAMILY_STYLES: Record<CardFamily, { bg: string; border: string; accent: string }> = {
@@ -26,9 +27,10 @@ function Field({ label, value, accent }: { label: string; value?: string | null;
   );
 }
 
-export function ArchetypeCard({ archetype }: { archetype: Archetype }) {
+export function ArchetypeCard({ archetype, tariff }: { archetype: Archetype; tariff: Tariff }) {
   const style = FAMILY_STYLES[archetype.family];
   const textColor = TEXT_ON[archetype.family];
+  const hasExtended = canUserAccess(tariff, "EXTENDED_CARD_CONTENT");
 
   return (
     <article className={`w-full max-w-sm rounded-lg border-2 ${style.border} ${style.bg} ${textColor} p-5`}>
@@ -49,12 +51,26 @@ export function ArchetypeCard({ archetype }: { archetype: Archetype }) {
       <Field label="Ритуал" value={archetype.ritual} accent={style.accent} />
       <Field label="Вопрос карты" value={archetype.cardQuestion} accent={style.accent} />
 
-      {/* Развёрнутое описание / инструкция — Standard+, показываются только
-          когда контент реально написан (extendedDescription/usageInstruction
-          пока пустые для всей колоды — это отдельная контентная задача,
-          архитектурное ТЗ раздел 6). */}
-      <Field label="Развёрнутое описание" value={archetype.extendedDescription} accent={style.accent} />
-      <Field label="Инструкция как пользоваться" value={archetype.usageInstruction} accent={style.accent} />
+      {/* Развёрнутое описание / инструкция — Standard+. Единственное место
+          в карте за paywall'ом (решение владельца 2026-07-25): контент ещё
+          не написан (отдельная контентная задача), поэтому пока это либо
+          ничего не показывает (Standard+/пусто), либо лок для Free, когда
+          текст появится. */}
+      {hasExtended ? (
+        <>
+          <Field label="Развёрнутое описание" value={archetype.extendedDescription} accent={style.accent} />
+          <Field label="Инструкция как пользоваться" value={archetype.usageInstruction} accent={style.accent} />
+        </>
+      ) : (
+        (archetype.extendedDescription || archetype.usageInstruction) && (
+          <div className="mb-3 flex items-center gap-2 rounded border border-dashed border-gold/50 p-2">
+            <span aria-hidden className="text-gold">🔒</span>
+            <p className="font-technical text-xs uppercase tracking-widest text-gold">
+              Развёрнутое описание и инструкция — от Standard
+            </p>
+          </div>
+        )
+      )}
 
       {archetype.clinicalFlag && (
         <div className="mt-3 rounded border border-red-warning bg-red-primary-dark/20 p-3">

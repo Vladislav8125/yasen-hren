@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDailyDraw } from "@/lib/cardEngine";
+import { canUserAccess, effectiveTariff } from "@/lib/access";
 import { ArchetypeCard } from "@/components/ArchetypeCard";
 import { drawPremiumCard } from "./actions";
 
@@ -21,6 +22,8 @@ export default async function TodayPage() {
   if (!session?.user) redirect("/login");
 
   const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });
+  const tariff = effectiveTariff(user);
+  const wantsSecondary = canUserAccess(tariff, "SECOND_CARD");
 
   const date = new Date();
   const dateOnly = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -31,7 +34,7 @@ export default async function TodayPage() {
   // Premium без карты на сегодня — сначала спросить: рандом или по сфере
   // (дизайн-ТЗ, экран «Выбор второй карты»). После выбора карта дня
   // фиксируется на весь день — это не переспрашивается повторно.
-  if (user.tariff === "PREMIUM" && !existingDraw) {
+  if (wantsSecondary && !existingDraw) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">{todayLabel()}</p>
@@ -71,15 +74,15 @@ export default async function TodayPage() {
   const draw = await getOrCreateDailyDraw({
     userId: user.id,
     channel: "WEB",
-    wantsSecondary: user.tariff === "PREMIUM",
+    wantsSecondary,
   });
 
   return (
     <main className="flex flex-1 flex-col items-center gap-8 p-6">
       <p className="font-technical text-xs uppercase tracking-widest text-gold">{todayLabel()}</p>
       <div className="flex flex-wrap justify-center gap-8">
-        <ArchetypeCard archetype={draw.primaryArchetype} />
-        {draw.secondaryArchetype && <ArchetypeCard archetype={draw.secondaryArchetype} />}
+        <ArchetypeCard archetype={draw.primaryArchetype} tariff={tariff} />
+        {draw.secondaryArchetype && <ArchetypeCard archetype={draw.secondaryArchetype} tariff={tariff} />}
       </div>
     </main>
   );

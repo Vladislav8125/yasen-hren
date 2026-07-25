@@ -53,6 +53,9 @@ export default async function RootLayout({
                 <Link href="/today" className="text-gold hover:text-gold-bright">
                   Карта дня
                 </Link>
+                <Link href="/tariffs" className="text-bone hover:text-gold-bright">
+                  Тарифы
+                </Link>
                 <Link href="/profile" className="text-bone hover:text-gold-bright">
                   {session.user.name}
                 </Link>
