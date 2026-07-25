@@ -60,6 +60,9 @@ export default async function RootLayout({
                 <Link href="/mirror" className="text-bone hover:text-gold-bright">
                   Зеркало
                 </Link>
+                <Link href="/assistant" className="text-bone hover:text-gold-bright">
+                  Спросить
+                </Link>
                 <Link href="/tariffs" className="text-bone hover:text-gold-bright">
                   Тарифы
                 </Link>
