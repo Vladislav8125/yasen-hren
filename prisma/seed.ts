@@ -35,6 +35,7 @@ async function main() {
         pathMotto: card.pathMotto,
         pathManifestations: card.pathManifestations,
         imageUrl: `/cards/${card.slug}.png`,
+        spheres: card.spheres ?? [],
       },
       update: {
         family: card.family,
@@ -57,6 +58,7 @@ async function main() {
         pathMotto: card.pathMotto,
         pathManifestations: card.pathManifestations,
         imageUrl: `/cards/${card.slug}.png`,
+        spheres: { set: card.spheres ?? [] },
       },
     });
   }

@@ -19,11 +19,16 @@
 
 export type CardFamily = "LIGHT" | "SHADOW" | "LIMINAL" | "PATH";
 
+export type LifeSphere = "HEALTH" | "RELATIONS" | "BUSINESS" | "HARMONY";
+
 export interface ArchetypeSeed {
   slug: string;
   family: CardFamily;
   name: string;
   tagline: string;
+  // Не печаталось на физических картах — разметка по смыслу карты
+  // (решение делегировано владельцем 2026-07-26, см. plans/2026-07-25-yasen-hren-app.md).
+  spheres?: LifeSphere[];
   property?: string;
   archetypeType?: string;
   essence: string;
@@ -50,6 +55,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "babay",
     family: "SHADOW",
+    spheres: ["HARMONY"],
     name: "БАБАЙ",
     tagline: "Пока не назовёшь — буду везде. Назовёшь — уменьшусь.",
     property: "Страх без причины · Тревога · Неопределённость",
@@ -67,6 +73,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "aposlya",
     family: "SHADOW",
+    spheres: ["BUSINESS"],
     name: "АПОСЛЯ",
     tagline: "Апосля как-нибудь. Само рассосётся. Потом=никогда.",
     property: "Избегание · Псевдорасслабленность · Откладывание",
@@ -87,6 +94,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "bzdets",
     family: "SHADOW",
+    spheres: ["HEALTH", "HARMONY"],
     name: "БЗДЕЦ",
     tagline: "Ничего не чувствую. Всё как будто не со мной",
     property: "Оцепенение · Пустота · Эмоциональное онемение",
@@ -103,6 +111,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "goryusha",
     family: "SHADOW",
+    spheres: ["RELATIONS", "HARMONY"],
     name: "ГОРЮША",
     tagline: "Я так и не позволил себе это оплакать",
     property: "Хроническая грусть · Непрожитое горе · «Застрял в прошлом»",
@@ -121,6 +130,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "zhabina",
     family: "SHADOW",
+    spheres: ["BUSINESS"],
     name: "ЖАБИНА",
     tagline: "Мало. Не хватит. Надо больше",
     property: "Жадность · Дефицит · Не хватит",
@@ -139,6 +149,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "danetka",
     family: "SHADOW",
+    spheres: ["BUSINESS"],
     name: "ДАНЕТКА",
     tagline: "Да, но нет... Да, только... Я бы хотел, но...",
     property: "Страх уязвимости · Закрытость · Зажатость",
@@ -155,6 +166,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "litsedey",
     family: "SHADOW",
+    spheres: ["RELATIONS", "HARMONY"],
     name: "ЛИЦЕДЕЙ",
     tagline: "«Всё хорошо — говорит маска. Настоящий молчит.»",
     property: "Публичный образ — Всё хорошо",
@@ -172,6 +184,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "nizya",
     family: "SHADOW",
+    spheres: ["RELATIONS"],
     name: "НИЗЯ",
     tagline: "Так не делают. Нельзя. Что люди скажут",
     property: "Чужие правила · Усвоенные запреты · Детская позиция",
@@ -190,6 +203,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "nudilo",
     family: "SHADOW",
+    spheres: ["BUSINESS", "HARMONY"],
     name: "НУДИЛО",
     tagline: "Всё надоело. Всё бессмысленно. Надо — значит надо",
     property: "Прокрастинация · Нытьё · Потеря интереса",
@@ -207,6 +221,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "opanka",
     family: "SHADOW",
+    spheres: ["BUSINESS"],
     name: "ОПАНЬКА",
     tagline: "Не получится. У меня никогда не выходит",
     property: "Не получится · Выученная беспомощность · Приговор себе",
@@ -225,6 +240,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "perfektsionchik",
     family: "SHADOW",
+    spheres: ["BUSINESS"],
     name: "ПЕРФЕКЦИОНЧИК",
     tagline: "Ещё немного. Ещё чуть-чуть. Ещё не готово",
     property: "Самозванец · Бесконечные правки · Страх оценки",
@@ -241,6 +257,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "ostorozha",
     family: "SHADOW",
+    spheres: ["RELATIONS"],
     name: "ОСТОРОЖА",
     tagline: "Близость — это опасно",
     property: "Страх уязвимости · Закрытость · Зажатость",
@@ -258,6 +275,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "herovata",
     family: "SHADOW",
+    spheres: ["HEALTH"],
     name: "ХЕРОВАТА",
     tagline: "Тело говорит то, что не может сказать голос",
     property: "Психосоматика · Болезнь как разрешение · Тело как выход",
@@ -274,6 +292,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "sranka",
     family: "SHADOW",
+    spheres: ["HARMONY"],
     name: "СРАНЬКА",
     tagline: "Ещё не готов. Когда-нибудь потом. Когда всё сложится",
     property: "«Ещё не готов» · Вечное откладывание · Выбор незрелости",
@@ -291,6 +310,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "ded-kondratiy",
     family: "SHADOW",
+    spheres: ["BUSINESS"],
     name: "ДЕД КОНДРАТИЙ",
     tagline: "«Завтра начну»",
     property: "Когнитивный ступор · Паралич от объёма · «Завтра начну»",
@@ -309,6 +329,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "babushka-shtobtebya",
     family: "LIGHT",
+    spheres: ["RELATIONS"],
     name: "БАБУШКА ШТОБТЕБЯ",
     tagline: "Да штобы тебя, сынок, иди-ка я тебя обниму",
     property: "Принятие · Тепло · Безусловная поддержка",
@@ -327,6 +348,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "ded-ohyo",
     family: "LIGHT",
+    spheres: ["HARMONY"],
     name: "ДЕД ОХЁ",
     tagline: "И не такое видели. Твои предки выжили — и ты справишься",
     property: "Стойкость · Корни · Масштаб",
@@ -347,6 +369,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "ishty",
     family: "LIGHT",
+    spheres: ["HARMONY"],
     name: "ИШЬТЫ",
     tagline: "Ишь ты! Вот оно как!",
     property: "Инсайт · Изумление · Признание",
@@ -364,6 +387,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "yoptyt",
     family: "LIGHT",
+    spheres: ["BUSINESS"],
     name: "ЁПТЫТЬ",
     tagline: "Ёптить, надо — значит надо",
     property: "Преодоление · Воля · Первый шаг",
@@ -380,6 +404,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "mat-anahua",
     family: "LIGHT",
+    spheres: ["BUSINESS", "HARMONY"],
     name: "МАТЬ АНАХУА",
     tagline: "А нахуа?",
     property: "Фильтр · Минимализм · Смысл",
@@ -399,6 +424,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "ladushka",
     family: "LIGHT",
+    spheres: ["RELATIONS"],
     name: "ЛАДУШКА",
     tagline: "Поладимся. Попрощаемся. Отпустим с миром. В ладу с собой",
     property: "Честность · Прямота · Прояснение",
@@ -416,6 +442,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "nutak",
     family: "LIGHT",
+    spheres: ["BUSINESS"],
     name: "НУТАК",
     tagline: "Ну так а как оно честно? Ну так — и что дальше?",
     property: "Реализм · Честность · Прояснение",
@@ -433,6 +460,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "nebos",
     family: "LIGHT",
+    spheres: ["HARMONY"],
     name: "НЕБОСЬ",
     tagline: "Небось всё будет. Небось устроится",
     property: "Доверие · Отпускание · Спокойствие",
@@ -449,6 +477,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "porushka",
     family: "LIGHT",
+    spheres: ["BUSINESS"],
     name: "ПОРУШКА",
     tagline: "Пора. Просто пора. Без объяснений",
     property: "Действие · Момент · Своевременность",
@@ -465,6 +494,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "otets-anunah",
     family: "LIGHT",
+    spheres: ["RELATIONS", "BUSINESS"],
     name: "ОТЕЦ АНУНАХ",
     tagline: "Да пошло оно... в вечность!",
     property: "Границы · Завершение · Защита",
@@ -484,6 +514,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "sherali",
     family: "LIGHT",
+    spheres: ["BUSINESS"],
     name: "СХЕРАЛИ",
     tagline: "А почему бы и нет? Схерали я не могу?!",
     property: "Дерзость · Запуск · Творчество",
@@ -502,6 +533,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "hrensnim",
     family: "LIGHT",
+    spheres: ["HARMONY"],
     name: "ХРЕНСНИМ",
     tagline: "Хрен с ним, пусть будет так",
     property: "Принятие · Отпускание · Согласие",
@@ -519,6 +551,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "choyto",
     family: "LIGHT",
+    spheres: ["HARMONY"],
     name: "ЧЁЙТО",
     tagline: "Чё это вообще такое? А давай попробуем!",
     property: "Радость · Игра · Спонтанность",
@@ -536,6 +569,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "yadryona",
     family: "LIGHT",
+    spheres: ["RELATIONS"],
     name: "ЯДРЁНА",
     tagline: "Ядрёна кочерыжка! Ну давай честно",
     property: "Честность · Прямота · Прояснение",
@@ -557,6 +591,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "avos",
     family: "LIMINAL",
+    spheres: ["BUSINESS"],
     name: "АВОСЬ",
     tagline: "Авось прорвёмся! Была не была!",
     property: "Риск · Смелость · Народная вера",
@@ -575,6 +610,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "ded-poh",
     family: "LIMINAL",
+    spheres: ["BUSINESS"],
     name: "ДЕД ПОХ",
     tagline: "Мне пох. И знаешь — это правильно",
     property: "Суверенитет · Приоритеты · Осознанный выбор",
@@ -592,6 +628,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "nehren",
     family: "LIMINAL",
+    spheres: ["RELATIONS"],
     name: "НЕХРЕН",
     tagline: "Ну-ка стоп! Так не пойдёт. Нехрен так со мной поступать",
     property: "Защита · Граница · Самоуважение",
@@ -610,6 +647,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "hahanki",
     family: "LIMINAL",
+    spheres: ["HARMONY"],
     name: "ХАХАНЬКИ",
     tagline: "Ха-ха-ха! Боже, как это всё смешно!",
     property: "Очищение · Абсурд · Освобождение",
@@ -627,6 +665,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "hihanki",
     family: "LIMINAL",
+    spheres: ["HARMONY"],
     name: "ХИХАНЬКИ",
     tagline: "Хи-хи, ха-ха, ну и что?",
     property: "Лёгкость · Игра · Снятие напряжения",
@@ -644,6 +683,7 @@ export const archetypes: ArchetypeSeed[] = [
   {
     slug: "hren",
     family: "LIMINAL",
+    spheres: ["HARMONY"],
     name: "ХРЕНЬ",
     tagline: "«Со мной что-то не так» — нет. Это просто твоё.",
     property: "Суверенитет · Уникальность · Личная правда",
