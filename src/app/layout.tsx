@@ -50,6 +50,9 @@ export default async function RootLayout({
           <nav className="font-technical text-xs uppercase tracking-widest">
             {session?.user ? (
               <div className="flex items-center gap-4">
+                <Link href="/today" className="text-gold hover:text-gold-bright">
+                  Карта дня
+                </Link>
                 <Link href="/profile" className="text-bone hover:text-gold-bright">
                   {session.user.name}
                 </Link>

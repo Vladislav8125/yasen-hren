@@ -122,9 +122,10 @@ model Archetype {
   imageUrl      String?
   spheres       LifeSphere[] // к каким сферам жизни привязана карта
 
-  lightAlly Archetype?  @relation("Ally", fields: [lightAllyId], references: [id])
-  shadowOf  Archetype[] @relation("Ally")
-  draws     DailyDraw[]
+  lightAlly       Archetype?  @relation("Ally", fields: [lightAllyId], references: [id])
+  shadowOf        Archetype[] @relation("Ally")
+  primaryDraws    DailyDraw[] @relation("PrimaryDraw")
+  secondaryDraws  DailyDraw[] @relation("SecondaryDraw")
 }
 
 model DailyDraw {
@@ -137,8 +138,9 @@ model DailyDraw {
   channel              DeliveryChannel // откуда была открыта карта
   createdAt            DateTime        @default(now())
 
-  user             User      @relation(fields: [userId], references: [id])
-  primaryArchetype Archetype @relation(fields: [primaryArchetypeId], references: [id])
+  user               User       @relation(fields: [userId], references: [id])
+  primaryArchetype   Archetype  @relation("PrimaryDraw", fields: [primaryArchetypeId], references: [id])
+  secondaryArchetype Archetype? @relation("SecondaryDraw", fields: [secondaryArchetypeId], references: [id])
 
   @@unique([userId, date]) // гарантия «1 карта дня на пользователя»
 }
