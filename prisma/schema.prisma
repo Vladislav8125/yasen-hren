@@ -86,27 +86,41 @@ model User {
 model Archetype {
   id           String     @id @default(cuid())
   family       CardFamily
-  name         String // "БАБАЙ"
+  name         String     @unique // "БАБАЙ" — уникально, чтобы seed-скрипт мог делать upsert
   tagline      String // "Пока не назовёшь — буду везде..."
 
   // Видно на ЛЮБОМ тарифе, включая Free — полный текст физической карты
   // (решение владельца 2026-07-25: Free = «карта со всеми надписями, как в файле колоды»)
-  property      String // СВОЙСТВО
-  archetypeType String // АРХЕТИП
+  // Опциональны — не на каждой физической карте печатаются оба поля
+  // (например, у части Пограничных нет отдельной строки «АРХЕТИП»).
+  property      String? // СВОЙСТВО
+  archetypeType String? // АРХЕТИП
   essence       String // СУТЬ
   function      String? // ФУНКЦИЯ
   inLife        String? // В ЖИЗНИ
   ritual        String? // РИТУАЛ
   cardQuestion  String? // ВОПРОС КАРТЫ
   clinicalFlag  String? // ⚠ показывается ВСЕГДА, вне зависимости от тарифа
+  branch        String? // ВЕТВЬ РОДА (только Светлая Семья)
+  shadowSide    String? // ТЕНЬ (печатается на части светлых/пограничных карт — не путать с family=SHADOW)
+
+  // Поля карт «Путь Путника» (family=PATH) — другая структура печатной карты,
+  // 2-колоночная инфографика вместо стандартных полей выше (дизайн-ТЗ, 3.1).
+  pathFunctions      String? // ФУНКЦИИ
+  pathResources      String? // РЕСУРСЫ
+  pathRituals        String? // РИТУАЛЫ
+  pathShadows        String? // ТЕНИ (список проявлений)
+  pathMotto          String? // ДЕВИЗ
+  pathManifestations String? // ПРОЯВЛЕНИЯ
 
   // НОВЫЙ текст, которого нет на физической карте. Виден со Standard и выше.
   extendedDescription String? // «Развёрнутое описание»
   usageInstruction    String? // «Инструкция как пользоваться»
 
-  lightAllyId String? // связь тень → светлый союзник
-  imageUrl    String?
-  spheres     LifeSphere[] // к каким сферам жизни привязана карта
+  lightAllyId   String? // связь тень → светлый союзник (по id)
+  lightAllyName String? // имя союзника, если он ещё не создан на момент сидирования — резолвится во втором проходе
+  imageUrl      String?
+  spheres       LifeSphere[] // к каким сферам жизни привязана карта
 
   lightAlly Archetype?  @relation("Ally", fields: [lightAllyId], references: [id])
   shadowOf  Archetype[] @relation("Ally")
