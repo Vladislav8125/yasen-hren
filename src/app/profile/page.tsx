@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveTariff, canUserAccess } from "@/lib/access";
+import { createTelegramLinkToken } from "@/lib/telegramLink";
+import { createVkLinkToken } from "@/lib/vkLink";
 
 const TARIFF_LABEL: Record<string, string> = {
   FREE: "Free",
@@ -21,6 +23,16 @@ export default async function ProfilePage() {
   });
   const tariff = effectiveTariff(user);
   const expired = user.tariff !== "FREE" && tariff === "FREE";
+
+  const botUsername = process.env.TELEGRAM_BOT_USERNAME;
+  const telegramLinkUrl = botUsername
+    ? `https://t.me/${botUsername}?start=${createTelegramLinkToken(user.id)}`
+    : null;
+
+  const vkGroupId = process.env.VK_GROUP_ID;
+  const vkLinkUrl = vkGroupId
+    ? `https://vk.com/im?sel=-${vkGroupId}&text=${encodeURIComponent(createVkLinkToken(user.id))}`
+    : null;
 
   return (
     <main className="flex flex-1 items-center justify-center p-6">
@@ -52,11 +64,51 @@ export default async function ProfilePage() {
               <dd>{user.tariffExpiresAt.toLocaleDateString("ru-RU")}</dd>
             </div>
           )}
+          <div className="flex justify-between border-b border-void-border pb-3">
+            <dt className="text-bone-dim">Telegram</dt>
+            <dd>{user.telegramChatId ? "привязан ✓" : "не привязан"}</dd>
+          </div>
+          <div className="flex justify-between border-b border-void-border pb-3">
+            <dt className="text-bone-dim">VK</dt>
+            <dd>{user.vkUserId ? "привязан ✓" : "не привязан"}</dd>
+          </div>
           <div className="flex justify-between">
             <dt className="text-bone-dim">С нами с</dt>
             <dd>{user.createdAt.toLocaleDateString("ru-RU")}</dd>
           </div>
         </dl>
+
+        {!user.telegramChatId &&
+          (telegramLinkUrl ? (
+            <a
+              href={telegramLinkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
+            >
+              Привязать Telegram
+            </a>
+          ) : (
+            <p className="mt-6 text-center font-body text-xs text-bone-dim">
+              Привязка Telegram скоро появится
+            </p>
+          ))}
+
+        {!user.vkUserId &&
+          (vkLinkUrl ? (
+            <a
+              href={vkLinkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
+            >
+              Привязать VK
+            </a>
+          ) : (
+            <p className="mt-3 text-center font-body text-xs text-bone-dim">
+              Привязка VK скоро появится
+            </p>
+          ))}
 
         <Link
           href="/tariffs"
