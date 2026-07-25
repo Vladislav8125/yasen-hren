@@ -47,7 +47,11 @@ export default async function RootLayout({
           <Link href="/" className="font-display text-lg text-parchment-hi">
             ЯСЕН ХРЕН
           </Link>
-          <nav className="font-technical text-xs uppercase tracking-widest">
+          <nav className="flex items-center gap-4 font-technical text-xs uppercase tracking-widest">
+            {/* Глоссарий — открытое пространство, доступен всем независимо от входа/тарифа */}
+            <Link href="/glossary" className="text-bone hover:text-gold-bright">
+              Глоссарий
+            </Link>
             {session?.user ? (
               <div className="flex items-center gap-4">
                 <Link href="/today" className="text-gold hover:text-gold-bright">
