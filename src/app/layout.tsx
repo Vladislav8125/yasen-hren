@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Yeseva_One, PT_Serif, JetBrains_Mono } from "next/font/google";
+import { auth, signOut } from "@/auth";
 import "./globals.css";
 
 // Дизайн-язык — plans/2026-07-25-yasen-hren-tz-design.md, раздел 2.2:
@@ -28,17 +30,54 @@ export const metadata: Metadata = {
   description: "Ежедневная карта архетипа — быстрая психологическая гигиена.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html
       lang="ru"
       className={`${yesevaOne.variable} ${ptSerif.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-void text-bone">{children}</body>
+      <body className="min-h-full flex flex-col bg-void text-bone">
+        <header className="flex items-center justify-between border-b border-void-border px-6 py-4">
+          <Link href="/" className="font-display text-lg text-parchment-hi">
+            ЯСЕН ХРЕН
+          </Link>
+          <nav className="font-technical text-xs uppercase tracking-widest">
+            {session?.user ? (
+              <div className="flex items-center gap-4">
+                <Link href="/profile" className="text-bone hover:text-gold-bright">
+                  {session.user.name}
+                </Link>
+                <form
+                  action={async () => {
+                    "use server";
+                    await signOut({ redirectTo: "/" });
+                  }}
+                >
+                  <button type="submit" className="text-bone-dim hover:text-red-warning">
+                    Выйти
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <Link href="/login" className="text-bone hover:text-gold-bright">
+                  Войти
+                </Link>
+                <Link href="/register" className="text-gold hover:text-gold-bright">
+                  Регистрация
+                </Link>
+              </div>
+            )}
+          </nav>
+        </header>
+        {children}
+      </body>
     </html>
   );
 }
