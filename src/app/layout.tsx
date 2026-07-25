@@ -53,6 +53,9 @@ export default async function RootLayout({
                 <Link href="/today" className="text-gold hover:text-gold-bright">
                   Карта дня
                 </Link>
+                <Link href="/mirror" className="text-bone hover:text-gold-bright">
+                  Зеркало
+                </Link>
                 <Link href="/tariffs" className="text-bone hover:text-gold-bright">
                   Тарифы
                 </Link>

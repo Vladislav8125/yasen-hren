@@ -27,6 +27,16 @@ function Field({ label, value, accent }: { label: string; value?: string | null;
   );
 }
 
+function PathCell({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div className="rounded border border-stone-light/30 bg-black/20 p-2.5">
+      <p className="font-technical text-xs uppercase tracking-widest text-gold-bright mb-1">{label}</p>
+      <p className="font-body text-sm leading-snug">{value}</p>
+    </div>
+  );
+}
+
 export function ArchetypeCard({ archetype, tariff }: { archetype: Archetype; tariff: Tariff }) {
   const style = FAMILY_STYLES[archetype.family];
   const textColor = TEXT_ON[archetype.family];
@@ -49,7 +59,21 @@ export function ArchetypeCard({ archetype, tariff }: { archetype: Archetype; tar
       <Field label="Функция" value={archetype.function} accent={style.accent} />
       <Field label="В жизни" value={archetype.inLife} accent={style.accent} />
       <Field label="Ритуал" value={archetype.ritual} accent={style.accent} />
+      <Field label="Тень" value={archetype.shadowSide} accent={style.accent} />
       <Field label="Вопрос карты" value={archetype.cardQuestion} accent={style.accent} />
+
+      {/* Путь Путника (family=PATH) — другая структура печатной карты:
+          2-колоночная инфографика вместо полей выше (дизайн-ТЗ, 3.1). */}
+      {archetype.family === "PATH" && (
+        <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <PathCell label="Функции" value={archetype.pathFunctions} />
+          <PathCell label="Ритуалы" value={archetype.pathRituals} />
+          <PathCell label="Ресурсы" value={archetype.pathResources} />
+          <PathCell label="Тени" value={archetype.pathShadows} />
+          <PathCell label="Девиз" value={archetype.pathMotto} />
+          <PathCell label="Проявления" value={archetype.pathManifestations} />
+        </div>
+      )}
 
       {/* Развёрнутое описание / инструкция — Standard+. Единственное место
           в карте за paywall'ом (решение владельца 2026-07-25): контент ещё
