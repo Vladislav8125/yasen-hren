@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/*
+  Дизайн-токены — plans/2026-07-25-yasen-hren-tz-design.md, раздел 2.1.
+  Приложение живёт в тёмной теме по умолчанию (--void) — это осознанное
+  решение продукта (ритуал происходит вечером, между делами), не забытая
+  светлая тема. Светлые токены (--parchment) используются для карт
+  Светлой Семьи и "дневных" разделов (тарифы, глоссарий, о нас).
+*/
+:root {
+  /* тьма — базовый фон приложения */
+  --void: #14100d;
+  --void-elevated: #1f1912;
+  --void-border: #3a2f22;
+  --bone: #d8cdb8;
+  --bone-dim: #8a7f6d;
+  --red-warning: #9c2b2b;
+
+  /* пергамент — Светлая Семья */
+  --parchment: #e9d6ac;
+  --parchment-hi: #f3e6c4;
+  --parchment-border: #c9a227;
+  --ink: #3b2a18;
+
+  /* акценты */
+  --red-primary: #7a1620;
+  --red-primary-dark: #5c0f17;
+  --gold: #b8892e;
+  --gold-bright: #d4af37;
+
+  /* пограничные / путь */
+  --teal: #2e7d7d;
+  --liminal-grey: #5b5348;
+  --stone-dark: #3a352d;
+  --stone-light: #c9c2b3;
+
+  /* 4 сферы жизни */
+  --sphere-health: #5b7b4f;
+  --sphere-relations: #a64b5c;
+  --sphere-business: #3a5a7a;
+  --sphere-harmony: #2e7d7d;
+}
+
+@theme inline {
+  --color-void: var(--void);
+  --color-void-elevated: var(--void-elevated);
+  --color-void-border: var(--void-border);
+  --color-bone: var(--bone);
+  --color-bone-dim: var(--bone-dim);
+  --color-red-warning: var(--red-warning);
+
+  --color-parchment: var(--parchment);
+  --color-parchment-hi: var(--parchment-hi);
+  --color-parchment-border: var(--parchment-border);
+  --color-ink: var(--ink);
+
+  --color-red-primary: var(--red-primary);
+  --color-red-primary-dark: var(--red-primary-dark);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+
+  --color-teal: var(--teal);
+  --color-liminal-grey: var(--liminal-grey);
+  --color-stone-dark: var(--stone-dark);
+  --color-stone-light: var(--stone-light);
+
+  --color-sphere-health: var(--sphere-health);
+  --color-sphere-relations: var(--sphere-relations);
+  --color-sphere-business: var(--sphere-business);
+  --color-sphere-harmony: var(--sphere-harmony);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-technical: var(--font-technical);
+}
+
+body {
+  font-family: var(--font-body), Georgia, serif;
+}
