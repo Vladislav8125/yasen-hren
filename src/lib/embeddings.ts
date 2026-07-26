@@ -5,7 +5,10 @@
 // ключа семантический поиск не работает, дословный режим (без эмбеддингов)
 // работает уже сейчас.
 
-const VOYAGE_MODEL = process.env.VOYAGE_EMBEDDING_MODEL ?? "voyage-3.5";
+// voyage-3.5 устарела и не входит в бесплатный лимит токенов (проверено
+// 2026-07-26) — voyage-4 при том же дефолтном output_dimension=1024
+// (схема БД не меняется) даёт 200M бесплатных токенов на аккаунт.
+const VOYAGE_MODEL = process.env.VOYAGE_EMBEDDING_MODEL ?? "voyage-4";
 
 export async function embedText(text: string): Promise<number[]> {
   const apiKey = process.env.VOYAGE_API_KEY;

@@ -191,9 +191,9 @@ model KnowledgeChunk {
   sourceType String // "methodology" | "glossary" | "card"
   sourceId   String? // id термина/карты, если применимо
   content    String
-  // 1024 — размерность Voyage AI (voyage-3.5, официальный партнёр Anthropic
-  // для эмбеддингов, архитектурное ТЗ раздел 7). Если модель эмбеддингов
-  // сменится на другую — размерность здесь и в src/lib/embeddings.ts должны
-  // совпадать, иначе pgvector откажется писать строки.
+  // 1024 — дефолтный output_dimension у Voyage AI (сейчас voyage-4, см.
+  // src/lib/embeddings.ts). Если модель/dimension сменится — размерность
+  // здесь и в src/lib/embeddings.ts должны совпадать, иначе pgvector
+  // откажется писать строки.
   embedding  Unsupported("vector(1024)")?
 }
