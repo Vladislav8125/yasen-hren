@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import type { Archetype, CardFamily, Tariff } from "@/generated/prisma/client";
 import { canUserAccess } from "@/lib/access";
@@ -41,11 +44,15 @@ export function ArchetypeCard({ archetype, tariff }: { archetype: Archetype; tar
   const style = FAMILY_STYLES[archetype.family];
   const textColor = TEXT_ON[archetype.family];
   const hasExtended = canUserAccess(tariff, "EXTENDED_CARD_CONTENT");
+  // Расширенное описание скрыто по умолчанию даже для тех, кому оно
+  // доступно по тарифу — владелец: "человек нажимает кнопку, чтобы
+  // получить расширенное описание" (не сразу вываливается весь текст).
+  const [revealed, setRevealed] = useState(false);
 
   return (
     <article className={`w-full max-w-sm rounded-lg border-2 ${style.border} ${style.bg} ${textColor} p-5`}>
       {archetype.imageUrl && (
-        <div className="relative mb-4 aspect-[5/7] w-full overflow-hidden rounded">
+        <div className="relative mb-4 aspect-5/7 w-full overflow-hidden rounded">
           <Image src={archetype.imageUrl} alt={archetype.name} fill className="object-cover" />
         </div>
       )}
@@ -81,10 +88,21 @@ export function ArchetypeCard({ archetype, tariff }: { archetype: Archetype; tar
           ничего не показывает (Standard+/пусто), либо лок для Free, когда
           текст появится. */}
       {hasExtended ? (
-        <>
-          <Field label="Развёрнутое описание" value={archetype.extendedDescription} accent={style.accent} />
-          <Field label="Инструкция как пользоваться" value={archetype.usageInstruction} accent={style.accent} />
-        </>
+        (archetype.extendedDescription || archetype.usageInstruction) &&
+        (revealed ? (
+          <>
+            <Field label="Развёрнутое описание" value={archetype.extendedDescription} accent={style.accent} />
+            <Field label="Инструкция как пользоваться" value={archetype.usageInstruction} accent={style.accent} />
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setRevealed(true)}
+            className="mb-3 w-full rounded border border-gold py-2 font-technical text-xs uppercase tracking-widest text-gold hover:bg-gold/10 hover:text-gold-bright"
+          >
+            Показать расширенное описание
+          </button>
+        ))
       ) : (
         (archetype.extendedDescription || archetype.usageInstruction) && (
           <div className="mb-3 flex items-center gap-2 rounded border border-dashed border-gold/50 p-2">

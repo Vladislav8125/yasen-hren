@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { auth } from "@/auth";
+import { PublicNav } from "@/components/PublicNav";
 
-// Шапка для публичных страниц (глоссарий/вход/регистрация) — не для
-// личного кабинета, у него свой каркас с сайдбаром (см. (cabinet)/layout.tsx).
+// Шапка для публичных страниц (вход/регистрация) — не для личного
+// кабинета и не для глоссария, у них свой каркас с сайдбаром
+// (см. (cabinet)/layout.tsx — глоссарий переехал туда, чтобы не терять
+// сайдбар при переходе из кабинета).
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -13,25 +16,7 @@ export default async function PublicLayout({ children }: { children: React.React
         <Link href="/" className="font-display text-lg text-parchment-hi">
           ЯСЕН ХРЕН
         </Link>
-        <nav className="flex items-center gap-4 font-technical text-xs uppercase tracking-widest">
-          <Link href="/glossary" className="text-bone hover:text-gold-bright">
-            Глоссарий
-          </Link>
-          {session?.user ? (
-            <Link href="/today" className="text-gold hover:text-gold-bright">
-              Личный кабинет
-            </Link>
-          ) : (
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="text-bone hover:text-gold-bright">
-                Войти
-              </Link>
-              <Link href="/register" className="text-gold hover:text-gold-bright">
-                Регистрация
-              </Link>
-            </div>
-          )}
-        </nav>
+        <PublicNav loggedIn={Boolean(session?.user)} />
       </header>
       {children}
     </div>

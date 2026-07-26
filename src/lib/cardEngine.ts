@@ -45,8 +45,9 @@ async function pickArchetype(params: {
   seed: string;
   excludeIds: Set<string>;
   sphere?: LifeSphere;
+  families?: CardFamily[];
 }): Promise<Archetype> {
-  const baseWhere = { family: { in: DAILY_POOL_FAMILIES } } as const;
+  const baseWhere = { family: { in: params.families ?? DAILY_POOL_FAMILIES } };
   const pool = await prisma.archetype.findMany({
     where: params.sphere ? { ...baseWhere, spheres: { has: params.sphere } } : baseWhere,
     orderBy: { id: "asc" },
@@ -99,11 +100,23 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
     excludeForSecondary.add(primary.id);
     sphereRequested = options.secondaryMode === "sphere" ? options.sphere : undefined;
 
-    const secondary = await pickArchetype({
-      seed: `${options.userId}:${dateStr}:secondary`,
-      excludeIds: excludeForSecondary,
-      sphere: sphereRequested,
-    });
+    // Вторая карта всегда позитивная (решение владельца 2026-07-26):
+    // тёмная карта (SHADOW) — её конкретный светлый союзник-антагонист
+    // (детерминированно через lightAllyId, не случайно — это заданная
+    // психологическая пара, не рандом). Светлая/пограничная карта, или
+    // тень без обозначенного союзника в исходнике — дополняющая светлая
+    // карта (та же логика "дополнение позитивного", сфера — как фильтр).
+    let secondary: Archetype;
+    if (primary.family === "SHADOW" && primary.lightAllyId) {
+      secondary = await prisma.archetype.findUniqueOrThrow({ where: { id: primary.lightAllyId } });
+    } else {
+      secondary = await pickArchetype({
+        seed: `${options.userId}:${dateStr}:secondary`,
+        excludeIds: excludeForSecondary,
+        sphere: sphereRequested,
+        families: ["LIGHT"],
+      });
+    }
     secondaryId = secondary.id;
   }
 

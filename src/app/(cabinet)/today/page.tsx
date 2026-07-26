@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDailyDraw } from "@/lib/cardEngine";
 import { canUserAccess, effectiveTariff } from "@/lib/access";
-import { ArchetypeCard } from "@/components/ArchetypeCard";
+import { CardDialog } from "@/components/CardDialog";
 import { drawPremiumCard } from "./actions";
 
 const SPHERES: { value: string; label: string; dot: string }[] = [
@@ -80,9 +80,10 @@ export default async function TodayPage() {
   return (
     <div className="flex flex-1 flex-col items-center gap-8 p-6">
       <p className="font-technical text-xs uppercase tracking-widest text-gold">{todayLabel()}</p>
+      <p className="font-body text-sm text-bone-dim -mt-6">Нажмите на карту, чтобы открыть</p>
       <div className="flex flex-wrap justify-center gap-8">
-        <ArchetypeCard archetype={draw.primaryArchetype} tariff={tariff} />
-        {draw.secondaryArchetype && <ArchetypeCard archetype={draw.secondaryArchetype} tariff={tariff} />}
+        <CardDialog archetype={draw.primaryArchetype} tariff={tariff} />
+        {draw.secondaryArchetype && <CardDialog archetype={draw.secondaryArchetype} tariff={tariff} />}
       </div>
     </div>
   );

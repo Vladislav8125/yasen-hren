@@ -10,7 +10,7 @@ export default async function GlossaryPage() {
   });
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-10 p-6">
+    <div className="flex flex-1 flex-col items-center gap-10 p-6">
       <div className="text-center">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">
           Открытое пространство · доступно на всех тарифах
@@ -69,6 +69,6 @@ export default async function GlossaryPage() {
           </p>
         )}
       </section>
-    </main>
+    </div>
   );
 }
