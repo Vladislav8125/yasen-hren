@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+ <g opacity="0.3">
+  <g fill="none" stroke="#b8892e" stroke-width="1.4" stroke-linecap="round">
+    <!-- вьющаяся ветвь -->
+    <path d="M -10 40 C 20 20, 40 60, 70 40 S 120 20, 150 45" />
+    <path d="M -10 130 C 20 110, 40 150, 70 130 S 120 110, 150 135" />
+  </g>
+
+  <!-- листья на ветвях -->
+  <g fill="#5b7b4f" opacity="0.9">
+    <ellipse cx="34" cy="34" rx="7" ry="3.2" transform="rotate(-35 34 34)" />
+    <ellipse cx="88" cy="46" rx="7" ry="3.2" transform="rotate(25 88 46)" />
+    <ellipse cx="124" cy="124" rx="7" ry="3.2" transform="rotate(-35 124 124)" />
+    <ellipse cx="18" cy="118" rx="7" ry="3.2" transform="rotate(25 18 118)" />
+  </g>
+
+  <!-- ягодные гроздья (рябина) -->
+  <g fill="#7a1620">
+    <circle cx="58" cy="28" r="3" />
+    <circle cx="64" cy="24" r="3" />
+    <circle cx="63" cy="33" r="3" />
+
+    <circle cx="108" cy="118" r="3" />
+    <circle cx="114" cy="114" r="3" />
+    <circle cx="113" cy="123" r="3" />
+  </g>
+
+  <!-- маленькая шестерёнка (стимпанк-акцент) -->
+  <g transform="translate(140 70)" fill="none" stroke="#b8892e" stroke-width="1.2">
+    <circle r="7" />
+    <circle r="2" fill="#b8892e" stroke="none" />
+    <g stroke-linecap="round">
+      <path d="M0 -9 L0 -12" />
+      <path d="M0 9 L0 12" />
+      <path d="M-9 0 L-12 0" />
+      <path d="M9 0 L12 0" />
+      <path d="M-6.4 -6.4 L-8.5 -8.5" />
+      <path d="M6.4 6.4 L8.5 8.5" />
+      <path d="M-6.4 6.4 L-8.5 8.5" />
+      <path d="M6.4 -6.4 L8.5 -8.5" />
+    </g>
+  </g>
+
+  <g transform="translate(20 80)" fill="none" stroke="#b8892e" stroke-width="1.2">
+    <circle r="5" />
+    <circle r="1.5" fill="#b8892e" stroke="none" />
+    <g stroke-linecap="round">
+      <path d="M0 -7 L0 -9" />
+      <path d="M0 7 L0 9" />
+      <path d="M-7 0 L-9 0" />
+      <path d="M7 0 L9 0" />
+    </g>
+  </g>
+ </g>
+</svg>
