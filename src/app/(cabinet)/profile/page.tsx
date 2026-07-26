@@ -35,7 +35,7 @@ export default async function ProfilePage() {
     : null;
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
+    <div className="flex flex-1 items-center justify-center p-6">
       <div className="w-full max-w-md rounded-lg border border-void-border bg-void-elevated p-8">
         <p className="font-technical text-xs uppercase tracking-widest text-gold mb-1.5">
           Личный кабинет
@@ -126,6 +126,6 @@ export default async function ProfilePage() {
           </Link>
         )}
       </div>
-    </main>
+    </div>
   );
 }

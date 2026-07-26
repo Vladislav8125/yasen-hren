@@ -26,7 +26,7 @@ export default async function ConsultationPage() {
 
   if (!canUserAccess(tariff, "CONSULTATION")) {
     return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">Консультация с основателем</p>
         <h1 className="font-display text-3xl text-parchment-hi">Доступно с Premium</h1>
         <p className="font-body text-bone-dim max-w-sm">
@@ -38,7 +38,7 @@ export default async function ConsultationPage() {
         >
           Смотреть тарифы
         </Link>
-      </main>
+      </div>
     );
   }
 
@@ -47,7 +47,7 @@ export default async function ConsultationPage() {
   });
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
+    <div className="flex flex-1 items-center justify-center p-6">
       <div className="w-full max-w-md rounded-lg border border-void-border bg-void-elevated p-8 text-center">
         <p className="font-technical text-xs uppercase tracking-widest text-gold mb-1.5">Premium</p>
         <h1 className="font-display text-3xl text-parchment-hi mb-6">Консультация с основателем</h1>
@@ -87,6 +87,6 @@ export default async function ConsultationPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

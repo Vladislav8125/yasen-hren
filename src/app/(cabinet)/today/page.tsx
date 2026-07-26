@@ -36,7 +36,7 @@ export default async function TodayPage() {
   // фиксируется на весь день — это не переспрашивается повторно.
   if (wantsSecondary && !existingDraw) {
     return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">{todayLabel()}</p>
         <h1 className="font-display text-3xl text-parchment-hi">Дополняющая карта</h1>
         <p className="font-body text-bone-dim max-w-sm text-center">
@@ -67,7 +67,7 @@ export default async function TodayPage() {
             Открыть карту
           </button>
         </form>
-      </main>
+      </div>
     );
   }
 
@@ -78,12 +78,12 @@ export default async function TodayPage() {
   });
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-8 p-6">
+    <div className="flex flex-1 flex-col items-center gap-8 p-6">
       <p className="font-technical text-xs uppercase tracking-widest text-gold">{todayLabel()}</p>
       <div className="flex flex-wrap justify-center gap-8">
         <ArchetypeCard archetype={draw.primaryArchetype} tariff={tariff} />
         {draw.secondaryArchetype && <ArchetypeCard archetype={draw.secondaryArchetype} tariff={tariff} />}
       </div>
-    </main>
+    </div>
   );
 }

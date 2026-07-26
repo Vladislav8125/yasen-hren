@@ -14,7 +14,7 @@ export default async function AssistantPage({
   const answer = q?.trim() ? await askAssistant(q.trim()) : null;
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-8 p-6">
+    <div className="flex flex-1 flex-col items-center gap-8 p-6">
       <div className="text-center">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">Спроси</p>
         <h1 className="font-display text-3xl text-parchment-hi">Ясен Хрен — ассистент</h1>
@@ -72,6 +72,6 @@ export default async function AssistantPage({
           )}
         </div>
       )}
-    </main>
+    </div>
   );
 }

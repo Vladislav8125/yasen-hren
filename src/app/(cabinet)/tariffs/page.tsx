@@ -43,7 +43,7 @@ export default async function TariffsPage() {
   const paymentsEnabled = Boolean(process.env.YOOKASSA_SHOP_ID && process.env.YOOKASSA_SECRET_KEY);
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-10 p-6">
+    <div className="flex flex-1 flex-col items-center gap-10 p-6">
       <div className="text-center">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">Тарифы</p>
         <h1 className="font-display text-3xl text-parchment-hi">Плата за зеркало</h1>
@@ -109,6 +109,6 @@ export default async function TariffsPage() {
           </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }
