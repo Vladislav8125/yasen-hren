@@ -10,6 +10,10 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Neon: миграциям нужно прямое (unpooled) соединение — advisory locks
+    // Prisma Migrate не переживают PgBouncer в transaction-режиме, которым
+    // работает пуленный DATABASE_URL. Рантайм-клиент (src/lib/prisma.ts)
+    // по-прежнему берёт пуленный DATABASE_URL напрямую — это разные пути.
+    url: process.env["DATABASE_URL_UNPOOLED"] ?? process.env["DATABASE_URL"],
   },
 });

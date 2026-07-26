@@ -1,0 +1,6 @@
+# Локальные секреты — никогда не должны попадать в аплоад деплоя,
+# только через vercel env (Project Settings → Environment Variables).
+.env
+.env.local
+.env*.local
+.env.neon.tmp
