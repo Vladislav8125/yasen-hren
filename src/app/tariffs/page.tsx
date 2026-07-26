@@ -63,7 +63,7 @@ export default async function TariffsPage() {
             } bg-void-elevated`}
           >
             {plan.highlight && (
-              <p className="mb-2 inline-block rounded bg-red-primary px-2 py-0.5 font-technical text-[10px] uppercase tracking-widest text-parchment-hi">
+              <p className="mb-2 inline-block rounded bg-red-primary px-2 py-0.5 font-technical text-[10px] uppercase tracking-widest text-parchment">
                 Разговор с основателем
               </p>
             )}
@@ -92,7 +92,7 @@ export default async function TariffsPage() {
                 <input type="hidden" name="tariff" value={plan.tariff} />
                 <button
                   type="submit"
-                  className="mt-6 w-full rounded bg-red-primary py-2.5 font-technical text-xs uppercase tracking-widest text-parchment-hi hover:bg-red-primary-dark"
+                  className="mt-6 w-full rounded bg-red-primary py-2.5 font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark"
                 >
                   Оформить
                 </button>

@@ -77,7 +77,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded bg-red-primary py-2.5 font-technical text-xs uppercase tracking-widest text-parchment-hi hover:bg-red-primary-dark disabled:opacity-50"
+          className="w-full rounded bg-red-primary py-2.5 font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark disabled:opacity-50"
         >
           {loading ? "Секунду…" : "Зарегистрироваться"}
         </button>

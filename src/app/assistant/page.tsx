@@ -30,7 +30,7 @@ export default async function AssistantPage({
         />
         <button
           type="submit"
-          className="rounded bg-red-primary px-5 py-2 font-technical text-xs uppercase tracking-widest text-parchment-hi hover:bg-red-primary-dark"
+          className="rounded bg-red-primary px-5 py-2 font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark"
         >
           Спросить
         </button>

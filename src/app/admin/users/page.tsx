@@ -50,7 +50,7 @@ export default async function AdminUsersPage() {
                     </select>
                     <button
                       type="submit"
-                      className="rounded bg-red-primary px-3 py-1 font-technical text-xs uppercase text-parchment-hi hover:bg-red-primary-dark"
+                      className="rounded bg-red-primary px-3 py-1 font-technical text-xs uppercase text-parchment hover:bg-red-primary-dark"
                     >
                       Применить
                     </button>

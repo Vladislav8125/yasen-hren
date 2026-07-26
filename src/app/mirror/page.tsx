@@ -31,7 +31,7 @@ export default async function MirrorPage() {
         </p>
         <Link
           href="/tariffs"
-          className="rounded bg-red-primary px-6 py-2.5 font-technical text-xs uppercase tracking-widest text-parchment-hi hover:bg-red-primary-dark"
+          className="rounded bg-red-primary px-6 py-2.5 font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark"
         >
           Смотреть тарифы
         </Link>

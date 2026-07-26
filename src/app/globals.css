@@ -19,9 +19,14 @@
   --bone-dim: #8a7a5f;
   --red-warning: #9c2b2b;
 
-  /* пергамент — Светлая Семья */
+  /* пергамент — фон карточек Светлой Семьи (bg-parchment), остаётся светлым — это цвет самой физической карты */
   --parchment: #e9d6ac;
-  --parchment-hi: #f3e6c4;
+  /* --parchment-hi используется по всему приложению только как ЦВЕТ ТЕКСТА
+     заголовков (text-parchment-hi, 32 места в 15 файлах) — задумывался как
+     "яркий текст на тёмном", на светлом фоне была бы светлым-по-светлому
+     (найдено по скриншоту 2026-07-26, до этого не было видно вживую).
+     Меняем на тёмный — так все существующие заголовки читаются без правки. */
+  --parchment-hi: #2a1f14;
   --parchment-border: #c9a227;
   --ink: #3b2a18;
 
@@ -82,7 +87,7 @@ body {
   background-color: var(--void);
   background-image: url("/patterns/ornament-tile.svg");
   background-repeat: repeat;
-  background-size: 160px 160px;
+  background-size: 420px 420px;
 }
 
 /* Единый "карточный" вид для всех светлых поверхностей (bg-void-elevated

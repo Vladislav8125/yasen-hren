@@ -112,7 +112,7 @@ export default async function ProfilePage() {
 
         <Link
           href="/tariffs"
-          className="mt-6 block w-full rounded bg-red-primary py-2.5 text-center font-technical text-xs uppercase tracking-widest text-parchment-hi hover:bg-red-primary-dark"
+          className="mt-6 block w-full rounded bg-red-primary py-2.5 text-center font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark"
         >
           {tariff === "FREE" ? "Оформить подписку" : "Управление подпиской"}
         </Link>
