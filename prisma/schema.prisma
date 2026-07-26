@@ -54,6 +54,23 @@ enum ConsultationStatus {
   CANCELLED
 }
 
+// Магазин — редизайн 2026-07-26, Фаза D (plans/2026-07-26-yasen-hren-redesign-light-cabinet.md).
+// 4 позиции жёстко заданы в коде (src/lib/shop.ts), не в БД — не нужна
+// отдельная CMS ради четырёх товаров.
+enum ShopProductId {
+  CARDS // печатная колода
+  GAME // заказать игру
+  CONSULTATION // консультация с психологом (НЕ то же самое, что Consultation с основателем)
+  CORPORATE // корпоративное мероприятие
+}
+
+enum ShopOrderStatus {
+  REQUESTED
+  CONTACTED
+  COMPLETED
+  CANCELLED
+}
+
 // --- модели ---
 
 model User {
@@ -73,6 +90,7 @@ model User {
   draws               DailyDraw[]
   payments            Payment[]
   consultations       Consultation[]
+  shopOrders          ShopOrder[]
   glossarySubmissions GlossaryTerm[] @relation("submittedBy")
   glossaryModerations GlossaryTerm[] @relation("moderatedBy")
 
@@ -170,6 +188,28 @@ model Consultation {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([userId, periodMonth]) // гарантия «не больше 1 консультации в месяц на подписчика»
+}
+
+model Psychologist {
+  id          String   @id @default(cuid())
+  name        String
+  credentials String // регалии/специализация — плейсхолдер-профили до реальных данных от владельца
+  photoUrl    String?
+  createdAt   DateTime @default(now())
+
+  orders ShopOrder[]
+}
+
+model ShopOrder {
+  id             String          @id @default(cuid())
+  userId         String
+  product        ShopProductId
+  status         ShopOrderStatus @default(REQUESTED)
+  psychologistId String? // только для product=CONSULTATION
+  createdAt      DateTime        @default(now())
+
+  user         User          @relation(fields: [userId], references: [id])
+  psychologist Psychologist? @relation(fields: [psychologistId], references: [id])
 }
 
 model GlossaryTerm {
