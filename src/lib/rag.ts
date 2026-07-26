@@ -96,7 +96,9 @@ async function completeViaOpenRouter(context: string, query: string): Promise<st
       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
       "HTTP-Referer": process.env.APP_URL ?? "http://localhost:3000",
-      "X-Title": "Ясен Хрен",
+      // HTTP-заголовки — только Latin1/ASCII, кириллица здесь роняет fetch
+      // с ByteString-ошибкой (проверено вживую 2026-07-26) — транслит вместо "Ясен Хрен".
+      "X-Title": "Yasen Khren",
     },
     body: JSON.stringify({
       model,
