@@ -52,9 +52,16 @@ async function main() {
     content: c.content,
   }));
 
+  // Имя + архетип + свойство добавлены 2026-07-27: раньше индексировались
+  // только essence/function/inLife, из-за чего вопросы про имя карты или
+  // упомянутую в archetypeType сущность (например "Мать Анахуа" — она
+  // сама отдельная карта, но встречается ещё и как фраза в archetypeType
+  // других карт) не находились в семантическом поиске.
   const archetypes = await prisma.archetype.findMany();
   for (const a of archetypes) {
-    const content = [a.essence, a.function, a.inLife].filter(Boolean).join(" ");
+    const content = [a.name, a.archetypeType, a.property, a.essence, a.function, a.inLife]
+      .filter(Boolean)
+      .join(" ");
     pending.push({ sourceType: "card", sourceId: a.name, content });
   }
 
