@@ -42,7 +42,25 @@ export default async function RootLayout({
       lang="ru"
       className={`${yesevaOne.variable} ${ptSerif.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-void text-bone">
+      <body className="min-h-full bg-void text-bone">
+        {/* Боковое окаймление — по образцу вертикальной рамки физических карт
+            (двойная золотая линия, узлы-шестерёнки, ягодная гроздь). Фиксировано
+            по краям вьюпорта, decorative-only — не должно перехватывать клики. */}
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-y-0 left-0 z-0 hidden w-16 md:block"
+          style={{ backgroundImage: "url(/patterns/side-border.svg)", backgroundRepeat: "repeat-y" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-y-0 right-0 z-0 hidden w-16 md:block"
+          style={{
+            backgroundImage: "url(/patterns/side-border.svg)",
+            backgroundRepeat: "repeat-y",
+            transform: "scaleX(-1)",
+          }}
+        />
+        <div className="relative z-10 flex min-h-full flex-col md:px-16">
         <header className="flex items-center justify-between border-b border-void-border px-6 py-4">
           <Link href="/" className="font-display text-lg text-parchment-hi">
             ЯСЕН ХРЕН
@@ -93,6 +111,7 @@ export default async function RootLayout({
           </nav>
         </header>
         {children}
+        </div>
       </body>
     </html>
   );
