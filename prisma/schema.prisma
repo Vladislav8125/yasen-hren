@@ -58,10 +58,12 @@ enum ConsultationStatus {
 // 4 позиции жёстко заданы в коде (src/lib/shop.ts), не в БД — не нужна
 // отдельная CMS ради четырёх товаров.
 enum ShopProductId {
-  CARDS // печатная колода
-  GAME // заказать игру
-  CONSULTATION // консультация с психологом (НЕ то же самое, что Consultation с основателем)
-  CORPORATE // корпоративное мероприятие
+  CARDS
+  GAME
+  CONSULTATION
+  CORPORATE
+  FOUNDER
+  CHALLENGE
 }
 
 enum ShopOrderStatus {
@@ -144,6 +146,7 @@ model Archetype {
   shadowOf        Archetype[] @relation("Ally")
   primaryDraws    DailyDraw[] @relation("PrimaryDraw")
   secondaryDraws  DailyDraw[] @relation("SecondaryDraw")
+  pathDraws       DailyDraw[] @relation("PathDraw")
 }
 
 model DailyDraw {
@@ -152,6 +155,7 @@ model DailyDraw {
   date                 DateTime        @db.Date // 1 запись на пользователя в день
   primaryArchetypeId   String
   secondaryArchetypeId String? // 2-я карта — только Premium
+  pathArchetypeId      String? // Карта Путника — раз в 7 дней (Standard+/Free — paywall)
   sphereRequested      LifeSphere? // если выбор был по сфере, а не рандом
   channel              DeliveryChannel // откуда была открыта карта
   createdAt            DateTime        @default(now())
@@ -159,6 +163,7 @@ model DailyDraw {
   user               User       @relation(fields: [userId], references: [id])
   primaryArchetype   Archetype  @relation("PrimaryDraw", fields: [primaryArchetypeId], references: [id])
   secondaryArchetype Archetype? @relation("SecondaryDraw", fields: [secondaryArchetypeId], references: [id])
+  pathArchetype      Archetype? @relation("PathDraw", fields: [pathArchetypeId], references: [id])
 
   @@unique([userId, date]) // гарантия «1 карта дня на пользователя»
 }

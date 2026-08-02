@@ -21,7 +21,7 @@ export default async function ShopConsultationPage() {
         <Link href="/shop" className="font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright">
           ← Магазин
         </Link>
-        <h1 className="font-display text-3xl text-parchment-hi mt-2">Выберите психолога</h1>
+        <h1 className="font-display text-3xl text-parchment-hi mt-2">Выберите Мастера</h1>
       </div>
 
       {existing ? (

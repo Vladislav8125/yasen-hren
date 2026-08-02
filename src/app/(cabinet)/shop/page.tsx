@@ -27,9 +27,6 @@ export default async function ShopPage() {
       <div className="text-center">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">Магазин</p>
         <h1 className="font-display text-3xl text-parchment-hi">Ясен Хрен — за пределами экрана</h1>
-        <p className="font-body text-bone-dim mt-2 max-w-md">
-          Цены пока условные (1 ₽) — реальные появятся вместе с оплатой.
-        </p>
       </div>
 
       <div className="grid w-full max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2">
@@ -45,7 +42,7 @@ export default async function ShopPage() {
               <h2 className="font-display text-xl text-parchment-hi mb-1">{product.title}</h2>
               <p className="font-body text-sm text-bone-dim mb-4 flex-1">{product.description}</p>
               <p className="mb-4 inline-block w-fit rounded bg-gold/15 px-2.5 py-1 font-technical text-xs uppercase tracking-widest text-gold-bright">
-                {product.priceRub} ₽
+                {product.priceRub.toLocaleString("ru-RU")} ₽
               </p>
 
               {active ? (
@@ -57,7 +54,7 @@ export default async function ShopPage() {
                   href="/shop/consultation"
                   className="rounded bg-red-primary py-2.5 text-center font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark"
                 >
-                  Выбрать психолога
+                  Выбрать Мастера
                 </Link>
               ) : (
                 <form action={orderProduct}>

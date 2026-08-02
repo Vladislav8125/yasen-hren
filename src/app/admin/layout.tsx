@@ -29,6 +29,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Link href="/admin/shop" className="text-bone hover:text-gold-bright">
           Магазин
         </Link>
+        <Link href="/admin/broadcast" className="text-bone hover:text-gold-bright">
+          Рассылка
+        </Link>
       </nav>
       {children}
     </div>

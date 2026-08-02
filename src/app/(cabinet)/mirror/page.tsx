@@ -1,18 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { canUserAccess, effectiveTariff } from "@/lib/access";
-import { getMirrorData, sphereLabel } from "@/lib/mirror";
+import { getMirrorData, sphereLabel, generatePathInsight } from "@/lib/mirror";
+import { DailyCarousel } from "@/components/DailyCarousel";
 import { ArchetypeCard } from "@/components/ArchetypeCard";
-
-const FAMILY_DOT: Record<string, string> = {
-  LIGHT: "bg-parchment",
-  SHADOW: "bg-void-border",
-  LIMINAL: "bg-teal",
-  PATH: "bg-stone-light",
-};
 
 export default async function MirrorPage() {
   const session = await auth();
@@ -42,10 +35,38 @@ export default async function MirrorPage() {
   const hasFullMirror = canUserAccess(tariff, "MIRROR_FULL");
   const data = await getMirrorData(user.id);
 
-  const pathCards = await prisma.archetype.findMany({
-    where: { family: "PATH" },
-    orderBy: { name: "asc" },
-  });
+  // Генерируем LLM-описания для карт Путника
+  const pathInsights = await Promise.all(
+    data.pathTimeline.map(async (entry) => {
+      const beforeCards = data.dailyTimeline
+        .filter((d) => new Date(d.date) < new Date(entry.date))
+        .slice(0, 5)
+        .map((d) => ({ name: d.archetype.name, tagline: "" }));
+
+      const beforeDraws = await prisma.dailyDraw.findMany({
+        where: { userId: user.id, date: { lt: entry.date } },
+        orderBy: { date: "desc" },
+        take: 7,
+        include: { primaryArchetype: { select: { name: true, tagline: true } } },
+      });
+
+      const beforeList = beforeDraws.map((d) => ({
+        name: d.primaryArchetype.name,
+        tagline: d.primaryArchetype.tagline,
+      }));
+
+      const insight = await generatePathInsight({
+        pathCard: {
+          name: entry.archetype.name,
+          essence: entry.archetype.essence,
+          tagline: entry.archetype.tagline,
+        },
+        beforeCards: beforeList,
+      });
+
+      return { entry, insight };
+    }),
+  );
 
   return (
     <div className="flex flex-1 flex-col items-center gap-10 p-6">
@@ -92,42 +113,66 @@ export default async function MirrorPage() {
             </section>
           )}
 
+          {/* Карты за 7 дней */}
           <section className="w-full max-w-3xl">
-            <h2 className="font-technical text-xs uppercase tracking-widest text-gold-bright mb-3 text-center">
-              Лента последних карт
+            <h2 className="font-technical text-xs uppercase tracking-widest text-gold-bright mb-1 text-center">
+              Карты за 7 дней
             </h2>
-            <div className="flex flex-wrap justify-center gap-2">
-              {data.timeline.map((t, i) => (
-                <div
-                  key={i}
-                  title={`${t.name} — ${new Date(t.date).toLocaleDateString("ru-RU")}`}
-                  className="relative h-16 w-11 overflow-hidden rounded border border-void-border"
-                >
-                  {t.imageUrl && <Image src={t.imageUrl} alt={t.name} fill className="object-cover" />}
-                  <span className={`absolute bottom-0 left-0 right-0 h-1 ${FAMILY_DOT[t.family]}`} />
-                </div>
-              ))}
+            <p className="font-body text-sm text-bone-dim text-center mb-4">
+              Какие архетипы выпадали — нажми на карту, чтобы рассмотреть
+            </p>
+            <div className="flex justify-center">
+              <DailyCarousel cards={data.dailyTimeline} />
             </div>
           </section>
+
+          {/* Карты Путника */}
+          {data.pathTimeline.length > 0 && (
+            <section className="w-full max-w-3xl border-t border-void-border pt-10">
+              <h2 className="font-display text-2xl text-parchment-hi text-center mb-1">
+                Карты Путника
+              </h2>
+              <p className="font-body text-sm text-bone-dim text-center mb-8">
+                Раз в неделю приходит карта пути. Она показывает — что было и где ты сейчас.
+              </p>
+
+              <div className="flex flex-col gap-8">
+                {pathInsights.map(({ entry, insight }) => (
+                  <div
+                    key={`${entry.date.toISOString()}-${entry.archetype.id}`}
+                    className="space-y-4"
+                  >
+                    <div
+                      className="rounded-lg border border-void-border bg-void-elevated p-4 font-body text-sm text-bone leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: insight.replace(/\n/g, "<br>"),
+                      }}
+                    />
+
+                    <div className="flex justify-center">
+                      <ArchetypeCard archetype={entry.archetype} tariff={tariff} revealed />
+                    </div>
+                    <p className="text-center font-technical text-xs text-bone-dim">
+                      {new Date(entry.date).toLocaleDateString("ru-RU")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {data.pathTimeline.length === 0 && (
+            <section className="w-full max-w-3xl border-t border-void-border pt-10">
+              <h2 className="font-display text-2xl text-parchment-hi text-center mb-1">
+                Карты Путника
+              </h2>
+              <p className="font-body text-sm text-bone-dim text-center">
+                Карты Путника ещё не выпадали — они приходят раз в неделю.
+              </p>
+            </section>
+          )}
         </>
       )}
-
-      <section className="w-full max-w-2xl border-t border-void-border pt-8">
-        <h2 className="font-display text-2xl text-parchment-hi text-center mb-1">Путь Путника</h2>
-        <p className="font-body text-sm text-bone-dim text-center mb-6">
-          Отдельный трек долгосрочного развития — открывай карты вручную, не по расписанию.
-        </p>
-        <div className="flex flex-col gap-3">
-          {pathCards.map((card) => (
-            <details key={card.id} className="rounded-lg border border-void-border bg-void-elevated p-4">
-              <summary className="cursor-pointer font-display text-lg text-gold-bright">{card.name}</summary>
-              <div className="mt-4 flex justify-center">
-                <ArchetypeCard archetype={card} tariff={tariff} />
-              </div>
-            </details>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

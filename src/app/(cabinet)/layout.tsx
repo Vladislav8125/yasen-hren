@@ -17,7 +17,7 @@ export default async function CabinetLayout({ children }: { children: React.Reac
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">
-      <aside className="flex shrink-0 flex-col gap-4 border-b border-void-border bg-void-elevated p-4 md:sticky md:top-0 md:h-screen md:w-60 md:border-r md:border-b-0 md:p-6">
+      <aside className="relative z-[51] flex shrink-0 flex-col gap-4 border-b border-void-border bg-void-elevated p-4 md:sticky md:top-0 md:h-screen md:w-60 md:border-r md:border-b-0 md:p-6">
         <Link href="/" className="hidden font-display text-lg text-parchment-hi md:block">
           ЯСЕН ХРЕН
         </Link>

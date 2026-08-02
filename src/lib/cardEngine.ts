@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
-import type { Archetype, CardFamily, DeliveryChannel, LifeSphere } from "@/generated/prisma/client";
+import type { Archetype, CardFamily, DeliveryChannel, LifeSphere, Tariff } from "@/generated/prisma/client";
 
 // Карточный движок — plans/2026-07-25-yasen-hren-tz-architecture.md, раздел 5.
 //
@@ -80,10 +80,11 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
 
   const existing = await prisma.dailyDraw.findUnique({
     where: { userId_date: { userId: options.userId, date } },
-    include: { primaryArchetype: true, secondaryArchetype: true },
+    include: { primaryArchetype: true, secondaryArchetype: true, pathArchetype: true },
   });
   if (existing) return existing;
 
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: options.userId } });
   const dateStr = date.toISOString().slice(0, 10);
   const excludeIds = await recentArchetypeIds(options.userId, ANTI_REPEAT_DAYS);
 
@@ -100,12 +101,6 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
     excludeForSecondary.add(primary.id);
     sphereRequested = options.secondaryMode === "sphere" ? options.sphere : undefined;
 
-    // Вторая карта всегда позитивная (решение владельца 2026-07-26):
-    // тёмная карта (SHADOW) — её конкретный светлый союзник-антагонист
-    // (детерминированно через lightAllyId, не случайно — это заданная
-    // психологическая пара, не рандом). Светлая/пограничная карта, или
-    // тень без обозначенного союзника в исходнике — дополняющая светлая
-    // карта (та же логика "дополнение позитивного", сфера — как фильтр).
     let secondary: Archetype;
     if (primary.family === "SHADOW" && primary.lightAllyId) {
       secondary = await prisma.archetype.findUniqueOrThrow({ where: { id: primary.lightAllyId } });
@@ -120,15 +115,70 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
     secondaryId = secondary.id;
   }
 
+  // Карта Путника — раз в 7 дней (Standard/Premium). Free не получает.
+  let pathArchetypeId: string | undefined;
+  const daysSinceCreation = Math.floor((date.getTime() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSinceCreation >= 0 && (daysSinceCreation % 7 === 0) && user.tariff !== "FREE") {
+    const pathPool = await prisma.archetype.findMany({
+      where: { family: "PATH" },
+      orderBy: { id: "asc" },
+    });
+    if (pathPool.length > 0) {
+      const idx = seededIndex(`${options.userId}:${dateStr}:path`, pathPool.length);
+      pathArchetypeId = pathPool[idx].id;
+    }
+  }
+
   return prisma.dailyDraw.create({
     data: {
       userId: options.userId,
       date,
       primaryArchetypeId: primary.id,
       secondaryArchetypeId: secondaryId,
+      pathArchetypeId,
       sphereRequested,
       channel: options.channel,
     },
-    include: { primaryArchetype: true, secondaryArchetype: true },
+    include: { primaryArchetype: true, secondaryArchetype: true, pathArchetype: true },
+  });
+}
+
+export async function addSecondaryCard(options: {
+  userId: string;
+  secondaryMode?: SecondaryMode;
+  sphere?: LifeSphere;
+}) {
+  const date = todayDateOnly();
+  const draw = await prisma.dailyDraw.findUniqueOrThrow({
+    where: { userId_date: { userId: options.userId, date } },
+    include: { primaryArchetype: true },
+  });
+
+  if (draw.secondaryArchetypeId) {
+    return draw as typeof draw & { secondaryArchetype: Archetype };
+  }
+
+  const dateStr = date.toISOString().slice(0, 10);
+  const excludeIds = await recentArchetypeIds(options.userId, ANTI_REPEAT_DAYS);
+  excludeIds.add(draw.primaryArchetypeId);
+
+  const sphereRequested = options.secondaryMode === "sphere" ? options.sphere : undefined;
+
+  let secondary: Archetype;
+  if (draw.primaryArchetype.family === "SHADOW" && draw.primaryArchetype.lightAllyId) {
+    secondary = await prisma.archetype.findUniqueOrThrow({ where: { id: draw.primaryArchetype.lightAllyId } });
+  } else {
+    secondary = await pickArchetype({
+      seed: `${options.userId}:${dateStr}:secondary`,
+      excludeIds,
+      sphere: sphereRequested,
+      families: ["LIGHT"],
+    });
+  }
+
+  return prisma.dailyDraw.update({
+    where: { id: draw.id },
+    data: { secondaryArchetypeId: secondary.id, sphereRequested },
+    include: { primaryArchetype: true, secondaryArchetype: true, pathArchetype: true },
   });
 }

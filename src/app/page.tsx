@@ -6,18 +6,17 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="relative flex flex-1 min-h-[85vh] items-center justify-center overflow-hidden rounded-lg">
+    <main className="relative flex min-h-screen flex-col items-center justify-end overflow-hidden">
       <video
-        className="absolute inset-0 h-full w-full object-cover"
-        src="/video/zastavka.mp4"
+        className="absolute inset-0 h-full w-full object-contain bg-black"
+        src="/video/ях.mp4"
         autoPlay
         muted
         loop
         playsInline
       />
-      <div className="absolute inset-0 bg-linear-to-t from-ink/70 via-ink/10 to-transparent" />
 
-      <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
+      <div className="relative z-10 mb-20 flex flex-col items-center gap-6 px-6 text-center">
         <Link
           href="/login"
           className="rounded bg-red-primary px-8 py-3.5 font-technical text-sm uppercase tracking-widest text-parchment shadow-lg hover:bg-red-primary-dark"

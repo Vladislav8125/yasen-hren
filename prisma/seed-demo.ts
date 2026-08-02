@@ -2,11 +2,6 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
-// Демо-аккаунт для показа приложения владельцу/стейкхолдерам — Premium
-// (видно всё: 2-я карта, полное «Зеркало», доступ к консультациям) с
-// историей карт за последние 10 дней, чтобы «Зеркало» не было пустым.
-// Запуск: pnpm tsx prisma/seed-demo.ts
-
 const DEMO_EMAIL = "demo@yasenhren.ru";
 const DEMO_PASSWORD = "YasenDemo2026";
 
@@ -17,6 +12,10 @@ function dateDaysAgo(days: number) {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() - days);
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 async function main() {
@@ -30,6 +29,7 @@ async function main() {
       passwordHash,
       tariff: "PREMIUM",
       tariffExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      createdAt: dateDaysAgo(14),
     },
     update: {
       tariff: "PREMIUM",
@@ -37,28 +37,33 @@ async function main() {
     },
   });
 
-  const pool = await prisma.archetype.findMany({
+  // Удаляем старые карты дня, чтобы пересоздать с PATH
+  await prisma.dailyDraw.deleteMany({ where: { userId: user.id } });
+
+  const primaryPool = await prisma.archetype.findMany({
     where: { family: { in: ["LIGHT", "SHADOW", "LIMINAL"] } },
     orderBy: { id: "asc" },
   });
 
-  // Намеренные повторы одних и тех же карт в разные дни — чтобы "Топ
-  // архетипов" в Зеркале показывал реальную картину, а не 10 разных карт.
-  const primaryPattern = [0, 1, 0, 2, 1, 0, 3, 2, 1, 0];
-  const secondaryPattern = [4, 5, 4, 6, 5, 4, 7, 6, 5, 4];
+  const pathPool = await prisma.archetype.findMany({
+    where: { family: "PATH" },
+    orderBy: { id: "asc" },
+  });
 
-  for (let i = 0; i < 10; i++) {
-    const date = dateDaysAgo(9 - i); // от старой к today
-    await prisma.dailyDraw.upsert({
-      where: { userId_date: { userId: user.id, date } },
-      create: {
+  const daysWithPath = new Set([0, 3]);
+
+  for (let i = 0; i < 5; i++) {
+    const date = dateDaysAgo(4 - i);
+    const pathArchetypeId = daysWithPath.has(i) ? pickRandom(pathPool).id : undefined;
+
+    await prisma.dailyDraw.create({
+      data: {
         userId: user.id,
         date,
-        primaryArchetypeId: pool[primaryPattern[i] % pool.length].id,
-        secondaryArchetypeId: pool[secondaryPattern[i] % pool.length].id,
+        primaryArchetypeId: pickRandom(primaryPool).id,
+        pathArchetypeId,
         channel: "WEB",
       },
-      update: {},
     });
   }
 
@@ -66,7 +71,8 @@ async function main() {
   console.log(`  email:    ${DEMO_EMAIL}`);
   console.log(`  пароль:   ${DEMO_PASSWORD}`);
   console.log(`  тариф:    PREMIUM`);
-  console.log(`  история:  10 дней карт (для "Зеркала")`);
+  console.log(`  история:  5 дней карт (PRIMARY), 2 дня с PATH`);
+  console.log(`  created:  14 дней назад`);
 }
 
 main()

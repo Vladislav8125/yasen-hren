@@ -82,12 +82,27 @@
   --font-technical: var(--font-technical);
 }
 
+/* ── Вариант 1: только fon.png ──
 body {
   font-family: var(--font-body), Georgia, serif;
   background-color: var(--void);
-  background-image: url("/patterns/ornament-tile.svg");
-  background-repeat: repeat;
-  background-size: 480px 480px;
+  background-image: url("/fon.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+*/
+
+/* ── Вариант 2 (микс): орнамент поверх fon.png ── */
+body {
+  font-family: var(--font-body), Georgia, serif;
+  background-color: var(--void);
+  background-image: url("/patterns/ornament-tile.svg"), linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("/fon.png");
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 480px 480px, auto, cover;
+  background-position: 0 0, 0 0, center;
+  background-attachment: fixed, fixed, fixed;
 }
 
 /* Единый "карточный" вид для всех светлых поверхностей (bg-void-elevated
