@@ -7,6 +7,7 @@
     "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
+    "knowledge:import": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/import-knowledge-docx.ps1",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -98,7 +98,7 @@ body {
 body {
   font-family: var(--font-body), Georgia, serif;
   background-color: var(--void);
-  background-image: url("/patterns/ornament-tile.svg"), linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("/fon.png");
+  background-image: url("/patterns/ornament-tile.svg"), linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28)), url("/fon.png");
   background-repeat: repeat, no-repeat, no-repeat;
   background-size: 480px 480px, auto, cover;
   background-position: 0 0, 0 0, center;

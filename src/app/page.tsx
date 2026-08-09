@@ -1,20 +1,14 @@
 import Link from "next/link";
 
 // Лендинг — plans/2026-07-26-yasen-hren-redesign-light-cabinet.md, Фаза B.
-// Видео на весь экран (public/video/zastavka.mp4, 5 сек, автоплей без звука,
-// зациклено) + кнопка входа в личный кабинет.
+// На десктопе — новый фон из игровой версии. На мобильном — видео с бабушкой.
 
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-end overflow-hidden">
-      <video
-        className="absolute inset-0 h-full w-full object-contain bg-black"
-        src="/video/ях.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-      />
+      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/fon.png')" }} />
+      <video className="absolute inset-0 h-full w-full object-cover" src="/video/ях.mp4" autoPlay muted loop playsInline />
+      <div className="absolute inset-0 bg-black/10 md:bg-black/5" />
 
       <div className="relative z-10 mb-20 flex flex-col items-center gap-6 px-6 text-center">
         <Link

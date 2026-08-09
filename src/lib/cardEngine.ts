@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
-import type { Archetype, CardFamily, DeliveryChannel, LifeSphere, Tariff } from "@/generated/prisma/client";
+import type { Archetype, CardFamily, DeliveryChannel, LifeSphere } from "@/generated/prisma/client";
+import { effectiveTariff } from "@/lib/access";
 
 // Карточный движок — plans/2026-07-25-yasen-hren-tz-architecture.md, раздел 5.
 //
@@ -9,8 +10,8 @@ import type { Archetype, CardFamily, DeliveryChannel, LifeSphere, Tariff } from 
 // и ту же карту. Anti-repeat не даёт повторить карту, которая выпадала
 // последние ANTI_REPEAT_DAYS дней (пока хватает карт в колоде).
 //
-// Путь Путника (family=PATH) в ежедневную раздачу не входит — решение
-// владельца 2026-07-25, это отдельный трек в «Зеркале».
+// Путь Путника выдаётся один раз в календарную неделю на активных платных
+// тарифах. В ежедневную колоду PATH не входит.
 
 const ANTI_REPEAT_DAYS = 7;
 const DAILY_POOL_FAMILIES: CardFamily[] = ["LIGHT", "SHADOW", "LIMINAL"];
@@ -65,6 +66,48 @@ async function pickArchetype(params: {
   return finalPool[index];
 }
 
+function utcWeekStart(date: Date): Date {
+  const day = date.getUTCDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const start = new Date(date);
+  start.setUTCDate(date.getUTCDate() + mondayOffset);
+  start.setUTCHours(0, 0, 0, 0);
+  return start;
+}
+
+function utcNextWeek(date: Date): Date {
+  const next = utcWeekStart(date);
+  next.setUTCDate(next.getUTCDate() + 7);
+  return next;
+}
+
+async function matrixLightAlly(archetype: Archetype): Promise<Archetype | null> {
+  if (archetype.family !== "SHADOW") return null;
+  if (archetype.lightAllyId) {
+    return prisma.archetype.findUnique({ where: { id: archetype.lightAllyId } });
+  }
+  if (!archetype.lightAllyName) return null;
+  return prisma.archetype.findFirst({
+    where: { family: "LIGHT", name: { equals: archetype.lightAllyName, mode: "insensitive" } },
+  });
+}
+
+async function weeklyPathFor(userId: string, date: Date, user: { tariff: "FREE" | "STANDARD" | "PREMIUM"; tariffExpiresAt: Date | null }) {
+  if (effectiveTariff(user) === "FREE") return null;
+  const weekStart = utcWeekStart(date);
+  const weekEnd = utcNextWeek(date);
+  const alreadyIssued = await prisma.dailyDraw.findFirst({
+    where: { userId, date: { gte: weekStart, lt: weekEnd }, pathArchetypeId: { not: null } },
+    select: { pathArchetypeId: true },
+  });
+  if (alreadyIssued) return null;
+
+  const pathPool = await prisma.archetype.findMany({ where: { family: "PATH" }, orderBy: { id: "asc" } });
+  if (pathPool.length === 0) return null;
+  const weekKey = weekStart.toISOString().slice(0, 10);
+  return pathPool[seededIndex(`${userId}:path:${weekKey}`, pathPool.length)].id;
+}
+
 export type SecondaryMode = "random" | "sphere";
 
 export interface DrawOptions {
@@ -82,9 +125,20 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
     where: { userId_date: { userId: options.userId, date } },
     include: { primaryArchetype: true, secondaryArchetype: true, pathArchetype: true },
   });
-  if (existing) return existing;
-
   const user = await prisma.user.findUniqueOrThrow({ where: { id: options.userId } });
+  if (existing) {
+    if (!existing.pathArchetypeId) {
+      const weeklyPathId = await weeklyPathFor(options.userId, date, user);
+      if (weeklyPathId) {
+        return prisma.dailyDraw.update({
+          where: { id: existing.id },
+          data: { pathArchetypeId: weeklyPathId },
+          include: { primaryArchetype: true, secondaryArchetype: true, pathArchetype: true },
+        });
+      }
+    }
+    return existing;
+  }
   const dateStr = date.toISOString().slice(0, 10);
   const excludeIds = await recentArchetypeIds(options.userId, ANTI_REPEAT_DAYS);
 
@@ -102,8 +156,9 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
     sphereRequested = options.secondaryMode === "sphere" ? options.sphere : undefined;
 
     let secondary: Archetype;
-    if (primary.family === "SHADOW" && primary.lightAllyId) {
-      secondary = await prisma.archetype.findUniqueOrThrow({ where: { id: primary.lightAllyId } });
+    const matrixAlly = await matrixLightAlly(primary);
+    if (matrixAlly) {
+      secondary = matrixAlly;
     } else {
       secondary = await pickArchetype({
         seed: `${options.userId}:${dateStr}:secondary`,
@@ -115,19 +170,7 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
     secondaryId = secondary.id;
   }
 
-  // Карта Путника — раз в 7 дней (Standard/Premium). Free не получает.
-  let pathArchetypeId: string | undefined;
-  const daysSinceCreation = Math.floor((date.getTime() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
-  if (daysSinceCreation >= 0 && (daysSinceCreation % 7 === 0) && user.tariff !== "FREE") {
-    const pathPool = await prisma.archetype.findMany({
-      where: { family: "PATH" },
-      orderBy: { id: "asc" },
-    });
-    if (pathPool.length > 0) {
-      const idx = seededIndex(`${options.userId}:${dateStr}:path`, pathPool.length);
-      pathArchetypeId = pathPool[idx].id;
-    }
-  }
+  const pathArchetypeId = await weeklyPathFor(options.userId, date, user);
 
   return prisma.dailyDraw.create({
     data: {
@@ -135,7 +178,7 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
       date,
       primaryArchetypeId: primary.id,
       secondaryArchetypeId: secondaryId,
-      pathArchetypeId,
+    pathArchetypeId: pathArchetypeId ?? undefined,
       sphereRequested,
       channel: options.channel,
     },
@@ -165,8 +208,9 @@ export async function addSecondaryCard(options: {
   const sphereRequested = options.secondaryMode === "sphere" ? options.sphere : undefined;
 
   let secondary: Archetype;
-  if (draw.primaryArchetype.family === "SHADOW" && draw.primaryArchetype.lightAllyId) {
-    secondary = await prisma.archetype.findUniqueOrThrow({ where: { id: draw.primaryArchetype.lightAllyId } });
+  const matrixAlly = await matrixLightAlly(draw.primaryArchetype);
+  if (matrixAlly) {
+    secondary = matrixAlly;
   } else {
     secondary = await pickArchetype({
       seed: `${options.userId}:${dateStr}:secondary`,

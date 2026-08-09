@@ -1,7 +1,7 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { embedTexts } from "../src/lib/embeddings";
-import { knowledgeChunks } from "./knowledge-data";
+import { knowledgeChunks, knowledgeDocumentChunks } from "./knowledge-data";
 
 // Индексация базы знаний для RAG — архитектурное ТЗ раздел 7.
 // Требует VOYAGE_API_KEY (эмбеддинги считаются один раз при заливке
@@ -46,7 +46,7 @@ async function main() {
   console.log("Очищаю старые эмбеддинги...");
   await prisma.knowledgeChunk.deleteMany({});
 
-  const pending: PendingChunk[] = knowledgeChunks.map((c) => ({
+  const pending: PendingChunk[] = [...knowledgeChunks, ...knowledgeDocumentChunks].map((c) => ({
     sourceType: c.sourceType,
     sourceId: c.sourceId,
     content: c.content,

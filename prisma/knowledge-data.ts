@@ -1,9 +1,10 @@
 // База знаний для RAG-ассистента — выжимка методологической статьи и
 // сценария («деловые-игры/ясен-хрен/»), нарезанная на смысловые куски.
-// Источник: Ясен_Хрен_психология_карт_статья.docx, Сценарий_..._25_06_2026.docx.
+// Источник: методологические материалы НИИХ и документы базы знаний.
+import { ALL_KNOWLEDGE_DOCUMENTS } from "../src/data/knowledge";
 
 export interface KnowledgeChunkSeed {
-  sourceType: "methodology";
+  sourceType: "methodology" | "document";
   sourceId: string;
   content: string;
 }
@@ -90,3 +91,11 @@ export const knowledgeChunks: KnowledgeChunkSeed[] = rawChunks.map((chunk) => ({
   ...chunk,
   sourceType: "methodology",
 }));
+
+export const knowledgeDocumentChunks: KnowledgeChunkSeed[] = ALL_KNOWLEDGE_DOCUMENTS.flatMap((document) =>
+  document.paragraphs.map((content, index) => ({
+    sourceType: "document" as const,
+    sourceId: `${document.slug}:${index + 1}`,
+    content: `${document.title}\n${content}`,
+  })),
+);

@@ -1,6 +1,7 @@
-import { Bot, InputFile, Keyboard } from "grammy";
+import { Bot, Context, InputFile, Keyboard } from "grammy";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDailyDraw } from "@/lib/cardEngine";
+import type { Archetype } from "@/generated/prisma/client";
 import { getMirrorData } from "@/lib/mirror";
 import { canUserAccess, effectiveTariff } from "@/lib/access";
 import { verifyTelegramLinkToken } from "@/lib/telegramLink";
@@ -31,6 +32,16 @@ function shortCaption(archetype: { name: string; tagline: string; property: stri
   lines.push(`Суть: ${archetype.essence}`);
   if (archetype.clinicalFlag) lines.push("", `⚠ ${archetype.clinicalFlag}`);
   return lines.join("\n");
+}
+
+async function sendCard(ctx: Context, archetype: Archetype, label?: string) {
+  const caption = `${label ? `*${label}*\n\n` : ""}${shortCaption(archetype)}`;
+  if (archetype.imageUrl) {
+    const filePath = path.join(process.cwd(), "public", archetype.imageUrl);
+    await ctx.replyWithPhoto(new InputFile(filePath), { caption, parse_mode: "Markdown" });
+  } else {
+    await ctx.reply(caption, { parse_mode: "Markdown" });
+  }
 }
 
 export function createBot(token: string) {
@@ -75,26 +86,14 @@ export function createBot(token: string) {
       wantsSecondary: canUserAccess(tariff, "SECOND_CARD"),
     });
 
-    const primary = draw.primaryArchetype;
-    if (primary.imageUrl) {
-      const filePath = path.join(process.cwd(), "public", primary.imageUrl);
-      await ctx.replyWithPhoto(new InputFile(filePath), {
-        caption: shortCaption(primary),
-        parse_mode: "Markdown",
-      });
-    } else {
-      await ctx.reply(shortCaption(primary), { parse_mode: "Markdown" });
-    }
+    await sendCard(ctx, draw.primaryArchetype);
 
     if (draw.secondaryArchetype) {
-      const secondary = draw.secondaryArchetype;
-      if (secondary.imageUrl) {
-        const filePath = path.join(process.cwd(), "public", secondary.imageUrl);
-        await ctx.replyWithPhoto(new InputFile(filePath), {
-          caption: shortCaption(secondary),
-          parse_mode: "Markdown",
-        });
-      }
+      await sendCard(ctx, draw.secondaryArchetype, "Вторая карта");
+    }
+
+    if (draw.pathArchetype) {
+      await sendCard(ctx, draw.pathArchetype, "Карта Пути · раз в неделю");
     }
   });
 
