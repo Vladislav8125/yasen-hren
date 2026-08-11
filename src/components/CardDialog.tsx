@@ -47,11 +47,11 @@ export function CardDialog({
         className="group flex w-56 cursor-pointer flex-col items-center gap-2"
       >
         {archetype.imageUrl ? (
-          <div className="relative aspect-5/7 w-full overflow-hidden rounded-lg shadow-md transition-transform group-hover:scale-[1.03]">
+          <div className="relative aspect-[20/41] w-full overflow-hidden rounded-lg shadow-md transition-transform group-hover:scale-[1.03]">
             <Image src={archetype.imageUrl} alt={archetype.name} fill className="object-cover" />
           </div>
         ) : (
-          <div className="flex aspect-5/7 w-full items-center justify-center rounded-lg shadow-md bg-void-elevated p-3 text-center">
+          <div className="flex aspect-[20/41] w-full items-center justify-center rounded-lg shadow-md bg-void-elevated p-3 text-center">
             <span className="font-display text-lg text-parchment-hi">{archetype.name}</span>
           </div>
         )}

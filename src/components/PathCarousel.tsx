@@ -44,7 +44,7 @@ export function PathCarousel({ cards }: { cards: TimelineCard[] }) {
           <div
             key={start + i}
             title={`${card.name} — ${new Date(card.date).toLocaleDateString("ru-RU")}`}
-            className="relative h-40 w-28 shrink-0 overflow-hidden rounded-lg shadow-md"
+            className="relative h-40 w-20 shrink-0 overflow-hidden rounded-lg shadow-md"
           >
             {card.imageUrl ? (
               <Image src={card.imageUrl} alt={card.name} fill className="object-cover" />

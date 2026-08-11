@@ -111,7 +111,7 @@ export function ArchetypeCard({ archetype, tariff, revealed: forcedRevealed, onR
       {/* Десктоп: картинка слева, текст справа */}
       <div className="hidden md:flex md:flex-row md:gap-6 md:max-h-[75vh]">
         {archetype.imageUrl && (
-          <div className="relative aspect-5/7 w-2/5 shrink-0 overflow-hidden rounded">
+          <div className="relative aspect-[20/41] w-2/5 shrink-0 overflow-hidden rounded">
             <Image src={archetype.imageUrl} alt={archetype.name} fill className="object-cover" />
           </div>
         )}
@@ -123,7 +123,7 @@ export function ArchetypeCard({ archetype, tariff, revealed: forcedRevealed, onR
       {/* Мобилка: обычная вертикальная вёрстка */}
       <div className="md:hidden">
         {archetype.imageUrl && (
-          <div className="relative mb-4 aspect-5/7 w-full overflow-hidden rounded">
+          <div className="relative mb-4 aspect-[20/41] w-full overflow-hidden rounded">
             <Image src={archetype.imageUrl} alt={archetype.name} fill className="object-cover" />
           </div>
         )}

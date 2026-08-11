@@ -52,7 +52,7 @@ export function DailyCarousel({ cards }: { cards: DailyCard[] }) {
               type="button"
               onClick={() => setSelected(card)}
               title={`${card.archetype.name} — ${new Date(card.date).toLocaleDateString("ru-RU")}`}
-              className="relative h-40 w-28 shrink-0 overflow-hidden rounded-lg shadow-md transition-transform hover:scale-105"
+              className="relative h-40 w-20 shrink-0 overflow-hidden rounded-lg shadow-md transition-transform hover:scale-105"
             >
               {card.archetype.imageUrl ? (
                 <Image src={card.archetype.imageUrl} alt={card.archetype.name} fill className="object-cover" />
@@ -100,7 +100,7 @@ export function DailyCarousel({ cards }: { cards: DailyCard[] }) {
           </button>
           <div className="flex w-full max-w-xs flex-col items-center gap-4">
             {selected.archetype.imageUrl ? (
-              <div className="relative aspect-5/7 w-full overflow-hidden rounded-lg shadow-md">
+              <div className="relative aspect-[20/41] w-full overflow-hidden rounded-lg shadow-md">
                 <Image
                   src={selected.archetype.imageUrl}
                   alt={selected.archetype.name}
@@ -109,7 +109,7 @@ export function DailyCarousel({ cards }: { cards: DailyCard[] }) {
                 />
               </div>
             ) : (
-              <div className="flex aspect-5/7 w-full items-center justify-center rounded-lg bg-parchment shadow-md p-8">
+              <div className="flex aspect-[20/41] w-full items-center justify-center rounded-lg bg-parchment shadow-md p-8">
                 <span className="font-display text-4xl text-parchment-hi">{selected.archetype.name}</span>
               </div>
             )}
