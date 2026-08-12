@@ -44,8 +44,9 @@ function shortCaption(archetype: {
 async function sendArchetype(
   vkUserId: string,
   archetype: { name: string; tagline: string; property: string | null; essence: string; clinicalFlag: string | null; imageUrl: string | null },
+  label?: string,
 ) {
-  const caption = shortCaption(archetype);
+  const caption = `${label ? `${label}\n\n` : ""}${shortCaption(archetype)}`;
   if (archetype.imageUrl) {
     const filePath = path.join(process.cwd(), "public", archetype.imageUrl);
     const attachment = await vkUploadPhoto(vkUserId, filePath);
@@ -87,7 +88,10 @@ export async function handleVkMessage(vkUserId: string, text: string) {
     });
     await sendArchetype(vkUserId, draw.primaryArchetype);
     if (draw.secondaryArchetype) {
-      await sendArchetype(vkUserId, draw.secondaryArchetype);
+      await sendArchetype(vkUserId, draw.secondaryArchetype, "Вторая карта");
+    }
+    if (draw.pathArchetype) {
+      await sendArchetype(vkUserId, draw.pathArchetype, "Карта Пути · раз в неделю");
     }
     return;
   }
