@@ -48,9 +48,16 @@ async function sendArchetype(
 ) {
   const caption = `${label ? `${label}\n\n` : ""}${shortCaption(archetype)}`;
   if (archetype.imageUrl) {
-    const filePath = path.join(process.cwd(), "public", archetype.imageUrl);
-    const attachment = await vkUploadPhoto(vkUserId, filePath);
-    await vkSendMessage(vkUserId, caption, { attachment });
+    try {
+      const filePath = path.join(process.cwd(), "public", archetype.imageUrl);
+      const attachment = await vkUploadPhoto(vkUserId, filePath);
+      await vkSendMessage(vkUserId, caption, { attachment });
+    } catch (error) {
+      // Некоторые токены сообществ выданы без scope "photos". Карта всё
+      // равно приходит пользователю, только изображение открывается ссылкой.
+      console.error("VK photo upload failed; sending image link instead", error);
+      await vkSendMessage(vkUserId, `${caption}\n\nИзображение карты: ${appUrl()}${archetype.imageUrl}`);
+    }
   } else {
     await vkSendMessage(vkUserId, caption);
   }
