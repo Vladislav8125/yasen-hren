@@ -91,14 +91,12 @@ export default async function ProfilePage() {
         )}
 
         {!user.vkUserId && vkLinkUrl && (
-          <a
-            href={vkLinkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/profile/vk-link"
             className="mt-3 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
           >
             Привязать VK
-          </a>
+          </Link>
         )}
 
         <Link
