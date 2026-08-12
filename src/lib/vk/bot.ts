@@ -1,6 +1,7 @@
 import path from "path";
 import { prisma } from "@/lib/prisma";
-import { getOrCreateDailyDraw } from "@/lib/cardEngine";
+import { addSecondaryCard, getOrCreateDailyDraw } from "@/lib/cardEngine";
+import type { Archetype, LifeSphere } from "@/generated/prisma/client";
 import { getMirrorData } from "@/lib/mirror";
 import { canUserAccess, effectiveTariff } from "@/lib/access";
 import { verifyVkLinkToken } from "@/lib/vkLink";
@@ -14,10 +15,40 @@ const MENU_KEYBOARD = JSON.stringify({
   one_time: false,
   buttons: [
     [{ action: { type: "text", label: "🃏 Карта дня" }, color: "primary" }],
+    [
+      { action: { type: "text", label: "📖 Подробнее" }, color: "secondary" },
+      { action: { type: "text", label: "➕ Вторая карта" }, color: "secondary" },
+    ],
     [{ action: { type: "text", label: "🪞 Зеркало" }, color: "secondary" }],
     [{ action: { type: "text", label: "💳 Тариф" }, color: "secondary" }],
   ],
 });
+
+const SPHERE_KEYBOARD = JSON.stringify({
+  one_time: true,
+  buttons: [
+    [
+      { action: { type: "text", label: "💼 Дело" }, color: "primary" },
+      { action: { type: "text", label: "❤️ Отношения" }, color: "primary" },
+    ],
+    [
+      { action: { type: "text", label: "🫀 Тело" }, color: "primary" },
+      { action: { type: "text", label: "☯️ Баланс" }, color: "primary" },
+    ],
+    [
+      { action: { type: "text", label: "🎲 Случайная" }, color: "secondary" },
+      { action: { type: "text", label: "◀️ Назад" }, color: "secondary" },
+    ],
+  ],
+});
+
+const SPHERE_CHOICES: Record<string, LifeSphere | undefined> = {
+  "💼 Дело": "BUSINESS",
+  "❤️ Отношения": "RELATIONS",
+  "🫀 Тело": "HEALTH",
+  "☯️ Баланс": "HARMONY",
+  "🎲 Случайная": undefined,
+};
 
 function appUrl() {
   return process.env.APP_URL ?? "http://localhost:3000";
@@ -39,6 +70,17 @@ function shortCaption(archetype: {
   lines.push(`Суть: ${archetype.essence}`);
   if (archetype.clinicalFlag) lines.push("", `⚠ ${archetype.clinicalFlag}`);
   return lines.join("\n");
+}
+
+function extendedText(archetype: Archetype) {
+  const parts = [`${archetype.name} — развёрнутое описание`];
+  if (archetype.extendedDescription) parts.push(archetype.extendedDescription);
+  if (archetype.usageInstruction) parts.push(`Как пользоваться:\n${archetype.usageInstruction}`);
+  return parts.join("\n\n");
+}
+
+async function todayDraw(userId: string) {
+  return getOrCreateDailyDraw({ userId, channel: "VK", wantsSecondary: false });
 }
 
 async function sendArchetype(
@@ -88,11 +130,7 @@ export async function handleVkMessage(vkUserId: string, text: string) {
   const tariff = effectiveTariff(user);
 
   if (trimmed.includes("Карта дня")) {
-    const draw = await getOrCreateDailyDraw({
-      userId: user.id,
-      channel: "VK",
-      wantsSecondary: canUserAccess(tariff, "SECOND_CARD"),
-    });
+    const draw = await todayDraw(user.id);
     await sendArchetype(vkUserId, draw.primaryArchetype);
     if (draw.secondaryArchetype) {
       await sendArchetype(vkUserId, draw.secondaryArchetype, "Вторая карта");
@@ -100,6 +138,52 @@ export async function handleVkMessage(vkUserId: string, text: string) {
     if (draw.pathArchetype) {
       await sendArchetype(vkUserId, draw.pathArchetype, "Карта Пути · раз в неделю");
     }
+    await vkSendMessage(vkUserId, "Выбери действие:", { keyboard: MENU_KEYBOARD });
+    return;
+  }
+
+  if (trimmed.includes("Подробнее")) {
+    if (!canUserAccess(tariff, "EXTENDED_CARD_CONTENT")) {
+      await vkSendMessage(vkUserId, `Развёрнутое описание доступно со Standard. Оформить: ${appUrl()}/tariffs`, { keyboard: MENU_KEYBOARD });
+      return;
+    }
+    const draw = await todayDraw(user.id);
+    await vkSendMessage(vkUserId, extendedText(draw.primaryArchetype), { keyboard: MENU_KEYBOARD });
+    return;
+  }
+
+  if (trimmed.includes("Вторая карта")) {
+    if (!canUserAccess(tariff, "SECOND_CARD")) {
+      await vkSendMessage(vkUserId, `Вторая карта доступна на Premium. Оформить: ${appUrl()}/tariffs`, { keyboard: MENU_KEYBOARD });
+      return;
+    }
+    const draw = await todayDraw(user.id);
+    if (draw.secondaryArchetype) {
+      await vkSendMessage(vkUserId, "Вторая карта уже выбрана на сегодня.", { keyboard: MENU_KEYBOARD });
+      return;
+    }
+    await vkSendMessage(vkUserId, "Выбери сферу жизни для второй карты:", { keyboard: SPHERE_KEYBOARD });
+    return;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(SPHERE_CHOICES, trimmed)) {
+    if (!canUserAccess(tariff, "SECOND_CARD")) {
+      await vkSendMessage(vkUserId, `Вторая карта доступна на Premium. Оформить: ${appUrl()}/tariffs`, { keyboard: MENU_KEYBOARD });
+      return;
+    }
+    const sphere = SPHERE_CHOICES[trimmed];
+    const draw = await addSecondaryCard({
+      userId: user.id,
+      secondaryMode: sphere ? "sphere" : "random",
+      sphere,
+    });
+    if (draw.secondaryArchetype) await sendArchetype(vkUserId, draw.secondaryArchetype, "Вторая карта");
+    await vkSendMessage(vkUserId, "Выбери действие:", { keyboard: MENU_KEYBOARD });
+    return;
+  }
+
+  if (trimmed.includes("Назад")) {
+    await vkSendMessage(vkUserId, "Выбери действие:", { keyboard: MENU_KEYBOARD });
     return;
   }
 

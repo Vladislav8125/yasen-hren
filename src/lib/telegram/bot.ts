@@ -1,7 +1,7 @@
 import { Bot, Context, InputFile, Keyboard } from "grammy";
 import { prisma } from "@/lib/prisma";
-import { getOrCreateDailyDraw } from "@/lib/cardEngine";
-import type { Archetype } from "@/generated/prisma/client";
+import { addSecondaryCard, getOrCreateDailyDraw } from "@/lib/cardEngine";
+import type { Archetype, LifeSphere } from "@/generated/prisma/client";
 import { getMirrorData } from "@/lib/mirror";
 import { canUserAccess, effectiveTariff } from "@/lib/access";
 import { verifyTelegramLinkToken } from "@/lib/telegramLink";
@@ -13,10 +13,32 @@ import path from "path";
 
 const MENU = new Keyboard()
   .text("🃏 Карта дня")
-  .text("🪞 Зеркало")
   .row()
+  .text("📖 Подробнее")
+  .text("➕ Вторая карта")
+  .row()
+  .text("🪞 Зеркало")
   .text("💳 Тариф")
   .resized();
+
+const SPHERE_MENU = new Keyboard()
+  .text("💼 Дело")
+  .text("❤️ Отношения")
+  .row()
+  .text("🫀 Тело")
+  .text("☯️ Баланс")
+  .row()
+  .text("🎲 Случайная")
+  .text("◀️ Назад")
+  .resized();
+
+const SPHERE_CHOICES: Record<string, LifeSphere | undefined> = {
+  "💼 Дело": "BUSINESS",
+  "❤️ Отношения": "RELATIONS",
+  "🫀 Тело": "HEALTH",
+  "☯️ Баланс": "HARMONY",
+  "🎲 Случайная": undefined,
+};
 
 function appUrl() {
   return process.env.APP_URL ?? "http://localhost:3000";
@@ -42,6 +64,17 @@ async function sendCard(ctx: Context, archetype: Archetype, label?: string) {
   } else {
     await ctx.reply(caption, { parse_mode: "Markdown" });
   }
+}
+
+function extendedText(archetype: Archetype) {
+  const parts = [`${archetype.name} — развёрнутое описание`];
+  if (archetype.extendedDescription) parts.push(archetype.extendedDescription);
+  if (archetype.usageInstruction) parts.push(`Как пользоваться:\n${archetype.usageInstruction}`);
+  return parts.join("\n\n");
+}
+
+async function todayDraw(userId: string) {
+  return getOrCreateDailyDraw({ userId, channel: "TELEGRAM", wantsSecondary: false });
 }
 
 export function createBot(token: string) {
@@ -80,11 +113,7 @@ export function createBot(token: string) {
     }
 
     const tariff = effectiveTariff(user);
-    const draw = await getOrCreateDailyDraw({
-      userId: user.id,
-      channel: "TELEGRAM",
-      wantsSecondary: canUserAccess(tariff, "SECOND_CARD"),
-    });
+    const draw = await todayDraw(user.id);
 
     await sendCard(ctx, draw.primaryArchetype);
 
@@ -95,6 +124,59 @@ export function createBot(token: string) {
     if (draw.pathArchetype) {
       await sendCard(ctx, draw.pathArchetype, "Карта Пути · раз в неделю");
     }
+    await ctx.reply("Выбери действие:", { reply_markup: MENU });
+  });
+
+  bot.hears("📖 Подробнее", async (ctx) => {
+    const user = await findLinkedUser(ctx.chat.id.toString());
+    if (!user) return void (await ctx.reply("Аккаунт ещё не привязан — сделай это в личном кабинете на сайте."));
+    const tariff = effectiveTariff(user);
+    if (!canUserAccess(tariff, "EXTENDED_CARD_CONTENT")) {
+      await ctx.reply(`Развёрнутое описание доступно со Standard. Оформить: ${appUrl()}/tariffs`, { reply_markup: MENU });
+      return;
+    }
+    const draw = await todayDraw(user.id);
+    await ctx.reply(extendedText(draw.primaryArchetype), { reply_markup: MENU });
+  });
+
+  bot.hears("➕ Вторая карта", async (ctx) => {
+    const user = await findLinkedUser(ctx.chat.id.toString());
+    if (!user) return void (await ctx.reply("Аккаунт ещё не привязан — сделай это в личном кабинете на сайте."));
+    const tariff = effectiveTariff(user);
+    if (!canUserAccess(tariff, "SECOND_CARD")) {
+      await ctx.reply(`Вторая карта доступна на Premium. Оформить: ${appUrl()}/tariffs`, { reply_markup: MENU });
+      return;
+    }
+    const draw = await todayDraw(user.id);
+    if (draw.secondaryArchetype) {
+      await ctx.reply("Вторая карта уже выбрана на сегодня.", { reply_markup: MENU });
+      return;
+    }
+    await ctx.reply("Выбери сферу жизни для второй карты:", { reply_markup: SPHERE_MENU });
+  });
+
+  bot.hears(Object.keys(SPHERE_CHOICES), async (ctx) => {
+    const user = await findLinkedUser(ctx.chat.id.toString());
+    if (!user) return void (await ctx.reply("Аккаунт ещё не привязан — сделай это в личном кабинете на сайте."));
+    const tariff = effectiveTariff(user);
+    if (!canUserAccess(tariff, "SECOND_CARD")) {
+      await ctx.reply(`Вторая карта доступна на Premium. Оформить: ${appUrl()}/tariffs`, { reply_markup: MENU });
+      return;
+    }
+    const choice = ctx.match?.toString();
+    if (!choice) return;
+    const sphere = SPHERE_CHOICES[choice];
+    const draw = await addSecondaryCard({
+      userId: user.id,
+      secondaryMode: sphere ? "sphere" : "random",
+      sphere,
+    });
+    if (draw.secondaryArchetype) await sendCard(ctx, draw.secondaryArchetype, "Вторая карта");
+    await ctx.reply("Выбери действие:", { reply_markup: MENU });
+  });
+
+  bot.hears("◀️ Назад", async (ctx) => {
+    await ctx.reply("Выбери действие:", { reply_markup: MENU });
   });
 
   bot.hears("🪞 Зеркало", async (ctx) => {
