@@ -67,9 +67,15 @@ async function sendCard(ctx: Context, archetype: Archetype, label?: string) {
 }
 
 function extendedText(archetype: Archetype) {
-  const parts = [`${archetype.name} — развёрнутое описание`];
+  const parts = [`${archetype.name} — полный разбор`];
   if (archetype.extendedDescription) parts.push(archetype.extendedDescription);
+  if (archetype.function) parts.push(`Функция:\n${archetype.function}`);
+  if (archetype.inLife) parts.push(`В жизни:\n${archetype.inLife}`);
   if (archetype.usageInstruction) parts.push(`Как пользоваться:\n${archetype.usageInstruction}`);
+  if (archetype.ritual) parts.push(`Ритуал:\n${archetype.ritual}`);
+  if (archetype.shadowSide) parts.push(`Тень:\n${archetype.shadowSide}`);
+  if (archetype.cardQuestion) parts.push(`Вопрос карты:\n${archetype.cardQuestion}`);
+  if (archetype.clinicalFlag) parts.push(`⚠ ${archetype.clinicalFlag}`);
   return parts.join("\n\n");
 }
 
