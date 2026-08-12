@@ -2,7 +2,7 @@ import { Bot, Context, InputFile, Keyboard } from "grammy";
 import { prisma } from "@/lib/prisma";
 import { addSecondaryCard, getOrCreateDailyDraw } from "@/lib/cardEngine";
 import type { Archetype, LifeSphere } from "@/generated/prisma/client";
-import { getMirrorData } from "@/lib/mirror";
+import { getMirrorData, sphereLabel } from "@/lib/mirror";
 import { canUserAccess, effectiveTariff } from "@/lib/access";
 import { verifyTelegramLinkToken } from "@/lib/telegramLink";
 import path from "path";
@@ -19,6 +19,8 @@ const MENU = new Keyboard()
   .row()
   .text("🪞 Зеркало")
   .text("💳 Тариф")
+  .row()
+  .text("📅 Консультация")
   .resized();
 
 const SPHERE_MENU = new Keyboard()
@@ -172,6 +174,7 @@ export function createBot(token: string) {
     const choice = ctx.match?.toString();
     if (!choice) return;
     const sphere = SPHERE_CHOICES[choice];
+    await todayDraw(user.id);
     const draw = await addSecondaryCard({
       userId: user.id,
       secondaryMode: sphere ? "sphere" : "random",
@@ -206,6 +209,10 @@ export function createBot(token: string) {
     for (const a of data.topArchetypes) {
       lines.push(`• ${a.name} — ${a.count} раз(а)`);
     }
+    if (canUserAccess(tariff, "MIRROR_FULL") && data.sphereTrends.length > 0) {
+      lines.push("", "Тренды по сферам:");
+      for (const trend of data.sphereTrends) lines.push(`• ${sphereLabel(trend.sphere)} — ${trend.count}`);
+    }
     await ctx.reply(lines.join("\n"));
   });
 
@@ -217,6 +224,17 @@ export function createBot(token: string) {
     }
     const tariff = effectiveTariff(user);
     await ctx.reply(`Твой тариф: ${tariff}\nУправление: ${appUrl()}/tariffs`);
+  });
+
+  bot.hears("📅 Консультация", async (ctx) => {
+    const user = await findLinkedUser(ctx.chat.id.toString());
+    if (!user) return void (await ctx.reply("Аккаунт ещё не привязан — сделай это в личном кабинете на сайте."));
+    const tariff = effectiveTariff(user);
+    if (!canUserAccess(tariff, "CONSULTATION")) {
+      await ctx.reply(`Консультация доступна на Premium. Оформить: ${appUrl()}/tariffs`, { reply_markup: MENU });
+      return;
+    }
+    await ctx.reply(`Записаться на консультацию: ${appUrl()}/consultation`, { reply_markup: MENU });
   });
 
   return bot;

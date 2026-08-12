@@ -2,7 +2,7 @@ import path from "path";
 import { prisma } from "@/lib/prisma";
 import { addSecondaryCard, getOrCreateDailyDraw } from "@/lib/cardEngine";
 import type { Archetype, LifeSphere } from "@/generated/prisma/client";
-import { getMirrorData } from "@/lib/mirror";
+import { getMirrorData, sphereLabel } from "@/lib/mirror";
 import { canUserAccess, effectiveTariff } from "@/lib/access";
 import { verifyVkLinkToken } from "@/lib/vkLink";
 import { vkSendMessage, vkUploadPhoto } from "./api";
@@ -21,6 +21,7 @@ const MENU_KEYBOARD = JSON.stringify({
     ],
     [{ action: { type: "text", label: "🪞 Зеркало" }, color: "secondary" }],
     [{ action: { type: "text", label: "💳 Тариф" }, color: "secondary" }],
+    [{ action: { type: "text", label: "📅 Консультация" }, color: "secondary" }],
   ],
 });
 
@@ -178,6 +179,7 @@ export async function handleVkMessage(vkUserId: string, text: string) {
       return;
     }
     const sphere = SPHERE_CHOICES[trimmed];
+    await todayDraw(user.id);
     const draw = await addSecondaryCard({
       userId: user.id,
       secondaryMode: sphere ? "sphere" : "random",
@@ -207,12 +209,25 @@ export async function handleVkMessage(vkUserId: string, text: string) {
     for (const a of data.topArchetypes) {
       lines.push(`• ${a.name} — ${a.count} раз(а)`);
     }
+    if (canUserAccess(tariff, "MIRROR_FULL") && data.sphereTrends.length > 0) {
+      lines.push("", "Тренды по сферам:");
+      for (const trend of data.sphereTrends) lines.push(`• ${sphereLabel(trend.sphere)} — ${trend.count}`);
+    }
     await vkSendMessage(vkUserId, lines.join("\n"));
     return;
   }
 
   if (trimmed.includes("Тариф")) {
     await vkSendMessage(vkUserId, `Твой тариф: ${tariff}\nУправление: ${appUrl()}/tariffs`);
+    return;
+  }
+
+  if (trimmed.includes("Консультация")) {
+    if (!canUserAccess(tariff, "CONSULTATION")) {
+      await vkSendMessage(vkUserId, `Консультация доступна на Premium. Оформить: ${appUrl()}/tariffs`, { keyboard: MENU_KEYBOARD });
+      return;
+    }
+    await vkSendMessage(vkUserId, `Записаться на консультацию: ${appUrl()}/consultation`, { keyboard: MENU_KEYBOARD });
     return;
   }
 

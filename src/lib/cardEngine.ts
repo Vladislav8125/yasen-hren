@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
 import type { Archetype, CardFamily, DeliveryChannel, LifeSphere } from "@/generated/prisma/client";
-import { effectiveTariff } from "@/lib/access";
+import { canUserAccess, effectiveTariff } from "@/lib/access";
 
 // Карточный движок — plans/2026-07-25-yasen-hren-tz-architecture.md, раздел 5.
 //
@@ -150,7 +150,7 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
   let secondaryId: string | undefined;
   let sphereRequested: LifeSphere | undefined;
 
-  if (options.wantsSecondary) {
+  if (options.wantsSecondary && canUserAccess(effectiveTariff(user), "SECOND_CARD")) {
     const excludeForSecondary = new Set(excludeIds);
     excludeForSecondary.add(primary.id);
     sphereRequested = options.secondaryMode === "sphere" ? options.sphere : undefined;
@@ -172,13 +172,18 @@ export async function getOrCreateDailyDraw(options: DrawOptions) {
 
   const pathArchetypeId = await weeklyPathFor(options.userId, date, user);
 
-  return prisma.dailyDraw.create({
-    data: {
+  // upsert устраняет гонку: сайт, VK и Telegram могут попросить карту
+  // практически одновременно, но для пользователя всё равно создаётся ровно
+  // одна раздача на календарный день.
+  return prisma.dailyDraw.upsert({
+    where: { userId_date: { userId: options.userId, date } },
+    update: {},
+    create: {
       userId: options.userId,
       date,
       primaryArchetypeId: primary.id,
       secondaryArchetypeId: secondaryId,
-    pathArchetypeId: pathArchetypeId ?? undefined,
+      pathArchetypeId: pathArchetypeId ?? undefined,
       sphereRequested,
       channel: options.channel,
     },
@@ -192,6 +197,10 @@ export async function addSecondaryCard(options: {
   sphere?: LifeSphere;
 }) {
   const date = todayDateOnly();
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: options.userId } });
+  if (!canUserAccess(effectiveTariff(user), "SECOND_CARD")) {
+    throw new Error("Вторая карта доступна только на тарифе Premium.");
+  }
   const draw = await prisma.dailyDraw.findUniqueOrThrow({
     where: { userId_date: { userId: options.userId, date } },
     include: { primaryArchetype: true },
