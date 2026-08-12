@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveTariff, canUserAccess } from "@/lib/access";
 import { createTelegramLinkToken } from "@/lib/telegramLink";
+import { createVkLinkToken } from "@/lib/vkLink";
 
 const TARIFF_LABEL: Record<string, string> = {
   FREE: "Free",
@@ -25,6 +26,10 @@ export default async function ProfilePage() {
 
   const botUsername = process.env.TELEGRAM_BOT_USERNAME || "yasenhren_bot";
   const telegramLinkUrl = `https://t.me/${botUsername}?start=${createTelegramLinkToken(user.id)}`;
+  const vkGroupId = process.env.VK_GROUP_ID;
+  const vkLinkUrl = vkGroupId
+    ? `https://vk.com/im?sel=-${vkGroupId}&text=${encodeURIComponent(createVkLinkToken(user.id))}`
+    : null;
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -62,6 +67,12 @@ export default async function ProfilePage() {
               {user.telegramChatId ? "привязан ✓" : "не привязан"}
             </dd>
           </div>
+          <div className="flex justify-between border-b border-void-border pb-3">
+            <dt className="text-bone-dim">VK</dt>
+            <dd className={user.vkUserId ? "text-green-600" : "text-bone-dim"}>
+              {user.vkUserId ? "привязан ✓" : "не привязан"}
+            </dd>
+          </div>
           <div className="flex justify-between">
             <dt className="text-bone-dim">С нами с</dt>
             <dd>{user.createdAt.toLocaleDateString("ru-RU")}</dd>
@@ -76,6 +87,17 @@ export default async function ProfilePage() {
             className="mt-6 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
           >
             Привязать Telegram
+          </a>
+        )}
+
+        {!user.vkUserId && vkLinkUrl && (
+          <a
+            href={vkLinkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
+          >
+            Привязать VK
           </a>
         )}
 
