@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { codeFromText } from "@/lib/partners";
-import { setAttribution } from "@/lib/partners";
+import { codeFromText, resolveLinkPartner, setAttribution } from "@/lib/partners";
 import { auth } from "@/auth";
 
 export async function GET(request: Request, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const normalized = codeFromText(code);
-  const partner = await prisma.partner.findFirst({ where: { code: normalized, status: "ACTIVE" } });
   const session = await auth();
+  const partner = await resolveLinkPartner(normalized);
   const target = new URL(session?.user?.id ? "/today" : "/register", request.url);
   const response = NextResponse.redirect(target);
   if (!partner) return response;
+  if (session?.user?.id === partner.userId) return response;
 
   await prisma.referralClick.create({
     data: { partnerId: partner.id, targetPath: "/register", referer: request.headers.get("referer")?.slice(0, 500) ?? null },

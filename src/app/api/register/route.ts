@@ -3,7 +3,7 @@ import { Prisma } from "@/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { resolvePartner, setAttribution } from "@/lib/partners";
+import { resolveLinkPartner, resolvePromoPartner, setAttribution } from "@/lib/partners";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -29,8 +29,9 @@ export async function POST(request: Request) {
     });
     // Промокод всегда сильнее последнего перехода по ссылке.
     const cookieStore = await cookies();
-    const referralCode = promoCode || cookieStore.get("yh_ref")?.value || "";
-    const partner = await resolvePartner(referralCode);
+    const partner = promoCode
+      ? await resolvePromoPartner(promoCode)
+      : await resolveLinkPartner(cookieStore.get("yh_ref")?.value ?? "");
     if (partner) {
       await setAttribution({ userId: user.id, partnerId: partner.id, source: promoCode ? "promo" : "link" });
     }

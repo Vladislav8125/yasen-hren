@@ -22,18 +22,25 @@ export function codeFromText(value: string) {
   return value.trim().toUpperCase().replace(/[^A-ZА-ЯЁ0-9_-]/g, "").slice(0, 32);
 }
 
-/** Promocode is deliberately resolved before link attribution. */
-export async function resolvePartner(code: string) {
+/** Код ссылки используется только в маршруте /r/[code]. */
+export async function resolveLinkPartner(code: string) {
   const normalized = codeFromText(code);
   if (!normalized) return null;
-  // Если строка совпала и с кодом ссылки, и с промокодом разных партнёров,
-  // промокод получает приоритет по правилам программы.
-  return (await prisma.partner.findFirst({ where: { status: "ACTIVE", promoCode: normalized } }))
-    ?? prisma.partner.findFirst({ where: { status: "ACTIVE", code: normalized } });
+  return prisma.partner.findFirst({ where: { status: "ACTIVE", code: normalized } });
+}
+
+/** Ручной ввод принимает только настоящий промокод, а не URL-код партнёра. */
+export async function resolvePromoPartner(code: string) {
+  const normalized = codeFromText(code);
+  if (!normalized) return null;
+  return prisma.partner.findFirst({ where: { status: "ACTIVE", promoCode: normalized } });
 }
 
 export async function setAttribution(params: { userId: string; partnerId: string; source: "link" | "promo" }) {
   const now = new Date();
+  const partner = await prisma.partner.findUnique({ where: { id: params.partnerId }, select: { userId: true, status: true } });
+  // Саморефералы и отключённые партнёры не атрибутируются.
+  if (!partner || partner.status !== "ACTIVE" || partner.userId === params.userId) return null;
   const existing = await prisma.referralAttribution.findUnique({ where: { userId: params.userId } });
   // Явно введённый промокод сильнее любой последующей ссылки, пока он действует.
   if (params.source === "link" && existing?.source === "promo" && existing.expiresAt > now) return existing;
