@@ -22,6 +22,7 @@ export default function RegisterPage() {
       email: form.get("email"),
       password: form.get("password"),
       phone: form.get("phone"),
+      promoCode: form.get("promoCode"),
     };
 
     const response = await fetch("/api/register", {
@@ -65,6 +66,7 @@ export default function RegisterPage() {
           type="tel"
           autoComplete="tel"
         />
+        <AuthField label="Промокод партнёра (если есть)" name="promoCode" type="text" autoComplete="off" />
         <AuthField
           label="Пароль"
           name="password"

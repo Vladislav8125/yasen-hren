@@ -18,6 +18,9 @@ export function PublicNav({ loggedIn }: { loggedIn: boolean }) {
           Глоссарий
         </Link>
       )}
+      <Link href="/partners" className="text-bone hover:text-gold-bright">
+        Партнёрам
+      </Link>
       {loggedIn ? (
         <Link href="/today" className="text-gold hover:text-gold-bright">
           Личный кабинет

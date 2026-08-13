@@ -11,8 +11,9 @@ const ICONS: Record<string, React.ReactNode> = {
   book: <Icon><rect x="3" y="3" width="14" height="14" rx="1" /><path d="M10 3v14" /></Icon>,
   knowledge: <Icon><path d="M4 3h9a3 3 0 013 3v11H7a3 3 0 01-3-3V3z" /><path d="M7 17V6a3 3 0 013-3M8 8h5M8 11h5" /></Icon>,
   user: <Icon><circle cx="10" cy="7" r="3" /><path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" /></Icon>,
+  partner: <Icon><circle cx="7" cy="7" r="3" /><circle cx="14" cy="11" r="2" /><path d="M2 17c0-3 2.3-5 5-5M10 17c0-2 1.7-4 4-4s4 2 4 4" /></Icon>,
 };
 const ITEMS: { href: string; label: string; icon: keyof typeof ICONS }[] = [
-  { href: "/today", label: "Карта дня", icon: "card" }, { href: "/mirror", label: "Зеркало", icon: "mirror" }, { href: "/shop", label: "Магазин", icon: "shop" }, { href: "/assistant", label: "Спросить", icon: "ask" }, { href: "/tariffs", label: "Тарифы", icon: "tariff" }, { href: "/glossary", label: "Глоссарий", icon: "book" }, { href: "/knowledge", label: "База знаний", icon: "knowledge" }, { href: "/profile", label: "Профиль", icon: "user" },
+  { href: "/today", label: "Карта дня", icon: "card" }, { href: "/mirror", label: "Зеркало", icon: "mirror" }, { href: "/shop", label: "Магазин", icon: "shop" }, { href: "/assistant", label: "Спросить", icon: "ask" }, { href: "/tariffs", label: "Тарифы", icon: "tariff" }, { href: "/glossary", label: "Глоссарий", icon: "book" }, { href: "/knowledge", label: "База знаний", icon: "knowledge" }, { href: "/partner", label: "Партнёрам", icon: "partner" }, { href: "/profile", label: "Профиль", icon: "user" },
 ];
 export function CabinetNav() { const pathname = usePathname(); return <nav className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">{ITEMS.map((item) => { const active = pathname === item.href || pathname.startsWith(`${item.href}/`); return <Link key={item.href} href={item.href} className={`flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 font-technical text-xs uppercase tracking-widest whitespace-nowrap ${active ? "bg-gold/15 text-gold-bright" : "text-bone-dim hover:bg-gold/10 hover:text-bone"}`}>{ICONS[item.icon]}{item.label}</Link>; })}</nav>; }

@@ -64,6 +64,7 @@ enum ShopProductId {
   CORPORATE
   FOUNDER
   CHALLENGE
+  MERCH
 }
 
 enum ShopOrderStatus {
@@ -71,6 +72,37 @@ enum ShopOrderStatus {
   CONTACTED
   COMPLETED
   CANCELLED
+}
+
+enum PartnerStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum PartnerRequestType {
+  SPEAKING
+  EVENT_GAME
+  MEDIA
+}
+
+enum PartnerRequestStatus {
+  NEW
+  IN_PROGRESS
+  CLOSED
+}
+
+enum CommissionKind {
+  SUBSCRIPTION
+  CARDS
+  CONSULTATION
+  GAME
+  MERCH
+}
+
+enum CommissionStatus {
+  APPROVED
+  PAID
+  VOID
 }
 
 // --- модели ---
@@ -87,6 +119,9 @@ model User {
   preferredChannel DeliveryChannel @default(WEB)
   telegramChatId   String?         @unique
   vkUserId         String?         @unique
+  referralAttribution ReferralAttribution?
+  partner          Partner?
+  referralCommissions ReferralCommission[] @relation("CommissionCustomer")
   createdAt        DateTime        @default(now())
 
   draws               DailyDraw[]
@@ -101,6 +136,81 @@ model User {
   // referralCode         String  @unique
   // referredById         String?
   // referralBonusGranted Boolean @default(false)
+}
+
+model Partner {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  code            String        @unique
+  promoCode       String        @unique
+  status          PartnerStatus @default(ACTIVE)
+  payoutDetails   String?
+  createdAt       DateTime      @default(now())
+
+  user            User                    @relation(fields: [userId], references: [id])
+  clicks          ReferralClick[]
+  attributions    ReferralAttribution[]
+  commissions     ReferralCommission[]
+}
+
+model ReferralClick {
+  id          String   @id @default(cuid())
+  partnerId   String
+  targetPath  String   @default("/")
+  referer     String?
+  createdAt   DateTime @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId, createdAt])
+}
+
+model ReferralAttribution {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  partnerId  String
+  source     String   // link / promo
+  expiresAt  DateTime
+  lastClickAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  partner Partner @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId, expiresAt])
+}
+
+model ReferralCommission {
+  id             String           @id @default(cuid())
+  partnerId      String
+  customerId     String
+  paymentId      String?          @unique
+  shopOrderId    String?          @unique
+  kind           CommissionKind
+  baseAmount     Int              // копейки
+  rateBps        Int              // 2000 = 20%, 1000 = 10%
+  amount         Int              // копейки
+  status         CommissionStatus @default(APPROVED)
+  paidAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+  customer User   @relation("CommissionCustomer", fields: [customerId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+  shopOrder ShopOrder? @relation(fields: [shopOrderId], references: [id])
+
+  @@index([partnerId, status, createdAt])
+}
+
+model PartnerRequest {
+  id        String               @id @default(cuid())
+  type      PartnerRequestType
+  status    PartnerRequestStatus @default(NEW)
+  name      String
+  email     String
+  company   String?
+  message   String
+  createdAt DateTime             @default(now())
 }
 
 model Archetype {
@@ -179,6 +289,7 @@ model Payment {
   paidAt            DateTime?
 
   user User @relation(fields: [userId], references: [id])
+  referralCommission ReferralCommission?
 }
 
 model Consultation {
@@ -215,6 +326,7 @@ model ShopOrder {
 
   user         User          @relation(fields: [userId], references: [id])
   psychologist Psychologist? @relation(fields: [psychologistId], references: [id])
+  referralCommission ReferralCommission?
 }
 
 model GlossaryTerm {

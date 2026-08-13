@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Tariff } from "@/generated/prisma/client";
+import { createSubscriptionCommission } from "@/lib/partners";
 
 // ЮKassa — архитектурное ТЗ, раздел 8. Паттерн переиспользован из
 // plans/2026-07-04-yookassa-tripvayer-oplata.md (create-payment + webhook,
@@ -109,6 +110,8 @@ export async function applySuccessfulPayment(yookassaPaymentId: string) {
       tariffExpiresAt: new Date(Date.now() + TARIFF_DURATION_DAYS * 24 * 60 * 60 * 1000),
     },
   });
+
+  await createSubscriptionCommission(payment.id);
 
   return { applied: true, status: "succeeded" };
 }

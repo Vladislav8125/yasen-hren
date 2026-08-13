@@ -48,6 +48,12 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     description: "21 день практики с картами. Ежедневные задания и поддержка.",
     priceRub: 10000,
   },
+  {
+    id: "MERCH",
+    title: "Мерч «Ясен Хрен»",
+    description: "Лимитированные вещи и материалы проекта. Оставьте заявку — уточним наличие и стоимость.",
+    priceRub: 3000,
+  },
 ];
 
 export function getShopProduct(id: ShopProductId): ShopProduct {

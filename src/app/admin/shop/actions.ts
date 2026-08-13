@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import type { ShopOrderStatus } from "@/generated/prisma/client";
+import { createShopCommission } from "@/lib/partners";
 
 async function requireAdmin() {
   const session = await auth();
@@ -20,5 +21,6 @@ export async function updateOrderStatus(formData: FormData) {
   const status = formData.get("status") as ShopOrderStatus;
 
   await prisma.shopOrder.update({ where: { id }, data: { status } });
+  if (status === "COMPLETED") await createShopCommission(id);
   revalidatePath("/admin/shop");
 }

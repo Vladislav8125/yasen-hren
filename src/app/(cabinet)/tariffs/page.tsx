@@ -100,6 +100,7 @@ export default async function TariffsPage() {
               ) : (
                 <form action={subscribeToTariff}>
                   <input type="hidden" name="tariff" value={plan.tariff} />
+                  <input name="promoCode" placeholder="Промокод партнёра" className="mb-2 w-full rounded border border-void-border bg-void px-3 py-2 text-sm text-bone" />
                   <button
                     type="submit"
                     className="w-full rounded bg-red-primary py-2.5 font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark"
