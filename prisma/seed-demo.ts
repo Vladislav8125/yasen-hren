@@ -32,6 +32,9 @@ async function main() {
       createdAt: dateDaysAgo(14),
     },
     update: {
+      // Демо-доступ должен быть всегда воспроизводимым: при повторном запуске
+      // восстанавливаем и пароль, а не только тариф.
+      passwordHash,
       tariff: "PREMIUM",
       tariffExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
     },
