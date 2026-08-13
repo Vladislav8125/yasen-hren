@@ -94,17 +94,16 @@ body {
 }
 */
 
-/* ── Вариант 2 (микс): реалистичная рябина поверх fon.png ──
-   Исходный векторный орнамент сохранён в patterns/ornament-tile.svg,
-   чтобы к нему можно было вернуться без потери. */
+/* Основное поле — только исходный пергамент.
+   Рябина остаётся лишь на боковых рамках, чтобы не мешать контенту. */
 body {
   font-family: var(--font-body), Georgia, serif;
   background-color: var(--void);
-  background-image: linear-gradient(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12)), url("/patterns/ornament-tile-realistic.png");
-  background-repeat: no-repeat, repeat;
-  background-size: auto, 720px 720px;
-  background-position: 0 0, center top;
-  background-attachment: fixed, fixed;
+  background-image: url("/fon.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 /* Единый "карточный" вид для всех светлых поверхностей (bg-void-elevated

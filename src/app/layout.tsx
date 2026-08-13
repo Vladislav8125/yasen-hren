@@ -51,14 +51,21 @@ export default function RootLayout({
         <div
           aria-hidden
           className="pointer-events-none fixed inset-y-0 left-0 z-0 hidden w-16 md:block"
-          style={{ backgroundImage: "url(/patterns/side-border.svg)", backgroundRepeat: "repeat-y" }}
+          style={{
+            backgroundImage: "url(/patterns/side-border-realistic.svg), url(/patterns/ornament-tile-realistic.png)",
+            backgroundRepeat: "repeat-y, repeat-y",
+            backgroundSize: "64px 300px, 300px 300px",
+            backgroundPosition: "0 0, left -55px",
+          }}
         />
         <div
           aria-hidden
           className="pointer-events-none fixed inset-y-0 right-0 z-0 hidden w-16 md:block"
           style={{
-            backgroundImage: "url(/patterns/side-border.svg)",
-            backgroundRepeat: "repeat-y",
+            backgroundImage: "url(/patterns/side-border-realistic.svg), url(/patterns/ornament-tile-realistic.png)",
+            backgroundRepeat: "repeat-y, repeat-y",
+            backgroundSize: "64px 300px, 300px 300px",
+            backgroundPosition: "0 0, left -55px",
             transform: "scaleX(-1)",
           }}
         />
