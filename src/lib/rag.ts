@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { embedText } from "@/lib/embeddings";
+import { ALL_KNOWLEDGE_DOCUMENTS } from "@/data/knowledge";
 
 // RAG-ассистент — архитектурное ТЗ, раздел 7. Два режима:
 // 1. Дословный — точное совпадение с термином глоссария/картой, ответ
@@ -59,6 +60,52 @@ async function semanticSearch(query: string, topK = 5) {
   );
 }
 
+type KnowledgeResult = { id: string; sourceType: string; sourceId: string | null; content: string; distance: number };
+
+/**
+ * Резервный поиск нужен, когда внешний провайдер векторов недоступен
+ * (например, заблокировал IP VPS). Он не заменяет семантический поиск, но
+ * сохраняет работающий ассистент по уже загруженной базе знаний.
+ */
+async function keywordFallbackSearch(query: string, topK = 5): Promise<KnowledgeResult[]> {
+  const terms = [...new Set(query.toLowerCase().match(/[\p{L}\p{N}-]{3,}/gu) ?? [])];
+  if (terms.length === 0) return [];
+  const score = (content: string) => {
+    const normalized = content.toLowerCase();
+    return terms.reduce((total, term) => total + (normalized.includes(term) ? 1 : 0), 0);
+  };
+
+  const documentMatches = ALL_KNOWLEDGE_DOCUMENTS.flatMap((document) =>
+    document.paragraphs.map((paragraph, index) => ({
+      id: `document:${document.slug}:${index}`,
+      sourceType: "document",
+      sourceId: `${document.slug}:${index + 1}`,
+      content: `${document.title}\n${paragraph}`,
+      distance: score(`${document.title}\n${paragraph}`),
+    })),
+  );
+  const [archetypes, glossary] = await Promise.all([
+    prisma.archetype.findMany(),
+    prisma.glossaryTerm.findMany({ where: { status: "approved" } }),
+  ]);
+  const dynamicMatches: KnowledgeResult[] = [
+    ...archetypes.map((card) => {
+      const content = [card.name, card.tagline, card.property, card.essence, card.function, card.inLife, card.ritual, card.cardQuestion]
+        .filter(Boolean).join("\n");
+      return { id: `card:${card.id}`, sourceType: "card", sourceId: card.name, content, distance: score(content) };
+    }),
+    ...glossary.map((term) => ({
+      id: `glossary:${term.id}`, sourceType: "glossary", sourceId: term.term,
+      content: `${term.term}: ${term.definition}`, distance: score(`${term.term}: ${term.definition}`),
+    })),
+  ];
+  return [...documentMatches, ...dynamicMatches]
+    .filter((result) => result.distance > 0)
+    .sort((a, b) => b.distance - a.distance)
+    .slice(0, topK)
+    .map((result) => ({ ...result, distance: 1 / result.distance }));
+}
+
 export async function askAssistant(query: string): Promise<AssistantAnswer> {
   const exact = await findExactMatch(query);
   if (exact) return exact;
@@ -70,15 +117,16 @@ export async function askAssistant(query: string): Promise<AssistantAnswer> {
     };
   }
 
-  let chunks;
+  let chunks: KnowledgeResult[];
   try {
     chunks = await semanticSearch(query);
   } catch (error) {
     console.error("Semantic search failed", error);
-    return { mode: "unavailable", text: "Смысловой поиск временно недоступен. Попробуйте ещё раз немного позже или спросите точное название карты." };
+    chunks = await keywordFallbackSearch(query);
   }
+  if (chunks.length === 0) chunks = await keywordFallbackSearch(query);
   if (chunks.length === 0) {
-    return { mode: "unavailable", text: "В базе знаний пока пусто — ничего не нашла." };
+    return { mode: "unavailable", text: "Не нашла подходящих материалов в базе знаний. Попробуйте назвать карту, термин или описать вопрос другими словами." };
   }
 
   const context = chunks
