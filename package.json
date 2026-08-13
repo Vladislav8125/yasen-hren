@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && next build --webpack",
+    "build": "prisma generate && prisma migrate deploy && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "knowledge:import": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/import-knowledge-docx.ps1",
