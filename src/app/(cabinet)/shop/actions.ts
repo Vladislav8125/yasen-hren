@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import type { ShopProductId } from "@/generated/prisma/client";
-import { resolvePartner, setAttribution } from "@/lib/partners";
+import { commissionForShopProduct, resolvePartner, setAttribution } from "@/lib/partners";
 
 async function requireUser() {
   const session = await auth();
@@ -20,7 +20,7 @@ export async function orderProduct(formData: FormData) {
   const partner = await resolvePartner(promoCode);
   if (partner) await setAttribution({ userId: user.id, partnerId: partner.id, source: "promo" });
 
-  await prisma.shopOrder.create({ data: { userId: user.id, product } });
+  await prisma.shopOrder.create({ data: { userId: user.id, product, amount: commissionForShopProduct(product).priceRub * 100 } });
 
   revalidatePath("/shop");
 }
@@ -33,7 +33,7 @@ export async function bookPsychologist(formData: FormData) {
   if (partner) await setAttribution({ userId: user.id, partnerId: partner.id, source: "promo" });
 
   await prisma.shopOrder.create({
-    data: { userId: user.id, product: "CONSULTATION", psychologistId },
+    data: { userId: user.id, product: "CONSULTATION", psychologistId, amount: commissionForShopProduct("CONSULTATION").priceRub * 100 },
   });
 
   revalidatePath("/shop/consultation");

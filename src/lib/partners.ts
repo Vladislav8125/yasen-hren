@@ -26,9 +26,10 @@ export function codeFromText(value: string) {
 export async function resolvePartner(code: string) {
   const normalized = codeFromText(code);
   if (!normalized) return null;
-  return prisma.partner.findFirst({
-    where: { status: "ACTIVE", OR: [{ code: normalized }, { promoCode: normalized }] },
-  });
+  // Если строка совпала и с кодом ссылки, и с промокодом разных партнёров,
+  // промокод получает приоритет по правилам программы.
+  return (await prisma.partner.findFirst({ where: { status: "ACTIVE", promoCode: normalized } }))
+    ?? prisma.partner.findFirst({ where: { status: "ACTIVE", code: normalized } });
 }
 
 export async function setAttribution(params: { userId: string; partnerId: string; source: "link" | "promo" }) {
@@ -54,20 +55,28 @@ async function activeAttribution(userId: string) {
 export async function createSubscriptionCommission(paymentId: string) {
   const payment = await prisma.payment.findUnique({ where: { id: paymentId } });
   if (!payment?.paidAt) return null;
-  const attribution = await activeAttribution(payment.userId);
-  if (!attribution) return null;
+  // 90 дней — срок привязки до первой оплаты. После первой оплаты подписки
+  // партнёр получает 20% с неё весь первый год, даже если cookie уже истекла.
+  const firstSubscription = await prisma.referralCommission.findFirst({
+    where: { customerId: payment.userId, kind: "SUBSCRIPTION", status: { not: "VOID" } },
+    include: { payment: true },
+    orderBy: { createdAt: "asc" },
+  });
+  const attribution = firstSubscription ? null : await activeAttribution(payment.userId);
+  if (!firstSubscription && !attribution) return null;
 
-  // 20% applies only for the first year after the most recent attribution.
-  const firstYearEnds = new Date(attribution.createdAt);
+  const firstPaymentAt = firstSubscription?.payment?.paidAt ?? payment.paidAt;
+  const firstYearEnds = new Date(firstPaymentAt);
   firstYearEnds.setFullYear(firstYearEnds.getFullYear() + 1);
   if (payment.paidAt > firstYearEnds) return null;
 
   return prisma.referralCommission.upsert({
     where: { paymentId },
     create: {
-      partnerId: attribution.partnerId, customerId: payment.userId, paymentId,
+      partnerId: firstSubscription?.partnerId ?? attribution!.partnerId, customerId: payment.userId, paymentId,
       kind: "SUBSCRIPTION", baseAmount: payment.amount, rateBps: 2000,
       amount: Math.round((payment.amount * 2000) / 10_000),
+      attributionSource: firstSubscription?.attributionSource ?? attribution!.source,
     },
     update: {},
   });
@@ -79,14 +88,26 @@ export async function createShopCommission(shopOrderId: string) {
   const attribution = await activeAttribution(order.userId);
   if (!attribution) return null;
   const rule = commissionForShopProduct(order.product);
-  const baseAmount = rule.priceRub * 100;
+  const baseAmount = order.amount ?? rule.priceRub * 100;
+  const amount = Math.round((baseAmount * rule.rateBps) / 10_000);
+  const existing = await prisma.referralCommission.findUnique({ where: { shopOrderId } });
+  if (existing?.status === "PAID") return existing;
   return prisma.referralCommission.upsert({
     where: { shopOrderId },
     create: {
       partnerId: attribution.partnerId, customerId: order.userId, shopOrderId,
       kind: rule.kind, baseAmount, rateBps: rule.rateBps,
-      amount: Math.round((baseAmount * rule.rateBps) / 10_000),
+      amount, attributionSource: attribution.source,
     },
-    update: {},
+    // Пока выплата не проведена, менеджер может скорректировать фактическую
+    // цену заказа — комиссия должна пересчитаться из неё.
+    update: { baseAmount, amount, rateBps: rule.rateBps, kind: rule.kind, attributionSource: attribution.source, status: "APPROVED", paidAt: null },
+  });
+}
+
+export async function voidShopCommission(shopOrderId: string) {
+  return prisma.referralCommission.updateMany({
+    where: { shopOrderId, status: "APPROVED" },
+    data: { status: "VOID" },
   });
 }

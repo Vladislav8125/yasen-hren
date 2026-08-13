@@ -190,6 +190,7 @@ model ReferralCommission {
   baseAmount     Int              // копейки
   rateBps        Int              // 2000 = 20%, 1000 = 10%
   amount         Int              // копейки
+  attributionSource String         @default("link") // link / promo
   status         CommissionStatus @default(APPROVED)
   paidAt         DateTime?
   createdAt      DateTime         @default(now())
@@ -322,6 +323,7 @@ model ShopOrder {
   product        ShopProductId
   status         ShopOrderStatus @default(REQUESTED)
   psychologistId String? // только для product=CONSULTATION
+  amount         Int? // фактически подтверждённая сумма в копейках
   createdAt      DateTime        @default(now())
 
   user         User          @relation(fields: [userId], references: [id])

@@ -13,6 +13,10 @@ export async function becomePartner(formData: FormData) {
   if (requested.length < 3) throw new Error("Введите код из трёх и более букв или цифр");
   const promo = codeFromText(String(formData.get("promoCode") ?? requested));
   if (promo.length < 3) throw new Error("Промокод должен содержать минимум три символа");
+  const occupied = await prisma.partner.findFirst({
+    where: { OR: [{ code: requested }, { promoCode: requested }, { code: promo }, { promoCode: promo }] },
+  });
+  if (occupied) throw new Error("Этот код ссылки или промокод уже занят");
   await prisma.partner.create({ data: { userId: session.user.id, code: requested, promoCode: promo } });
   revalidatePath("/partner");
 }

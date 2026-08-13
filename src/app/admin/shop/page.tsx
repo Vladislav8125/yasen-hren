@@ -33,8 +33,9 @@ export default async function AdminShopPage() {
                 {o.user.name} · {o.user.email} · {o.createdAt.toLocaleDateString("ru-RU")}
                 {o.psychologist && ` · к ${o.psychologist.name}`}
               </p>
-              <form action={updateOrderStatus} className="flex gap-2">
+              <form action={updateOrderStatus} className="flex flex-wrap gap-2">
                 <input type="hidden" name="id" value={o.id} />
+                <label className="flex items-center gap-2 font-technical text-xs text-bone-dim">Оплата, ₽<input name="amountRub" type="number" min="0" step="1" defaultValue={o.amount ? o.amount / 100 : getShopProduct(o.product).priceRub} className="w-28 rounded border border-void-border bg-void px-2 py-1 text-bone" /></label>
                 <button
                   type="submit"
                   name="status"
