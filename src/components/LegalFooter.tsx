@@ -5,6 +5,8 @@ const POLICY_LINKS = [
   { slug: "personal-data", label: "Обработка персональных данных" },
   { slug: "cookies", label: "Политика использования cookie" },
   { slug: "offer", label: "Публичная оферта" },
+  { slug: "service-terms", label: "Условия предоставления услуг" },
+  { slug: "refunds", label: "Возврат и отказ от покупки" },
 ];
 
 export function LegalFooter() {
