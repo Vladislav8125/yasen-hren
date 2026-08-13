@@ -21,20 +21,33 @@ interface PendingChunk {
   content: string;
 }
 
-async function insertChunks(chunks: PendingChunk[]) {
-  const vectors = await embedTexts(chunks.map((c) => c.content));
-
-  for (let i = 0; i < chunks.length; i++) {
-    const vectorLiteral = `[${vectors[i].join(",")}]`;
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "KnowledgeChunk" (id, "sourceType", "sourceId", content, embedding)
-       VALUES (gen_random_uuid()::text, $1, $2, $3, $4::vector)`,
-      chunks[i].sourceType,
-      chunks[i].sourceId,
-      chunks[i].content,
-      vectorLiteral,
-    );
+async function createVectors(chunks: PendingChunk[]) {
+  // Размер 128 рекомендован Voyage для крупных наборов. Векторы получаем до
+  // изменения БД: ошибка внешнего API не уничтожит уже работающий индекс.
+  const vectors: number[][] = [];
+  for (let index = 0; index < chunks.length; index += 128) {
+    const batch = chunks.slice(index, index + 128);
+    console.log(`Эмбеддинги ${index + 1}–${index + batch.length} из ${chunks.length}...`);
+    vectors.push(...await embedTexts(batch.map((chunk) => chunk.content), "document"));
   }
+  return vectors;
+}
+
+async function replaceChunks(chunks: PendingChunk[], vectors: number[][]) {
+  await prisma.$transaction(async (tx) => {
+    await tx.knowledgeChunk.deleteMany({});
+    for (let i = 0; i < chunks.length; i++) {
+      const vectorLiteral = `[${vectors[i].join(",")}]`;
+      await tx.$executeRawUnsafe(
+        `INSERT INTO "KnowledgeChunk" (id, "sourceType", "sourceId", content, embedding)
+         VALUES (gen_random_uuid()::text, $1, $2, $3, $4::vector)`,
+        chunks[i].sourceType,
+        chunks[i].sourceId,
+        chunks[i].content,
+        vectorLiteral,
+      );
+    }
+  });
 }
 
 async function main() {
@@ -42,9 +55,6 @@ async function main() {
     console.error("VOYAGE_API_KEY не задан — индексация невозможна. См. .env.example.");
     process.exit(1);
   }
-
-  console.log("Очищаю старые эмбеддинги...");
-  await prisma.knowledgeChunk.deleteMany({});
 
   const pending: PendingChunk[] = [...knowledgeChunks, ...knowledgeDocumentChunks].map((c) => ({
     sourceType: c.sourceType,
@@ -70,8 +80,10 @@ async function main() {
     pending.push({ sourceType: "glossary", sourceId: t.term, content: `${t.term}: ${t.definition}` });
   }
 
-  console.log(`Индексирую ${pending.length} кусков одним batch-запросом к Voyage...`);
-  await insertChunks(pending);
+  console.log(`Индексирую ${pending.length} кусков через Voyage...`);
+  const vectors = await createVectors(pending);
+  console.log("Заменяю индекс одной транзакцией...");
+  await replaceChunks(pending, vectors);
 
   const total = await prisma.knowledgeChunk.count();
   console.log(`Готово: ${total} кусков в базе знаний.`);

@@ -51,6 +51,7 @@ async function semanticSearch(query: string, topK = 5) {
   >(
     `SELECT id, "sourceType", "sourceId", content, embedding <=> $1::vector AS distance
      FROM "KnowledgeChunk"
+     WHERE embedding IS NOT NULL
      ORDER BY embedding <=> $1::vector
      LIMIT $2`,
     vectorLiteral,
@@ -69,7 +70,13 @@ export async function askAssistant(query: string): Promise<AssistantAnswer> {
     };
   }
 
-  const chunks = await semanticSearch(query);
+  let chunks;
+  try {
+    chunks = await semanticSearch(query);
+  } catch (error) {
+    console.error("Semantic search failed", error);
+    return { mode: "unavailable", text: "Смысловой поиск временно недоступен. Попробуйте ещё раз немного позже или спросите точное название карты." };
+  }
   if (chunks.length === 0) {
     return { mode: "unavailable", text: "В базе знаний пока пусто — ничего не нашла." };
   }
@@ -78,7 +85,13 @@ export async function askAssistant(query: string): Promise<AssistantAnswer> {
     .map((c, i) => `[${i + 1}] (${c.sourceType}${c.sourceId ? `: ${c.sourceId}` : ""}) ${c.content}`)
     .join("\n\n");
 
-  const text = await completeViaOpenRouter(context, query);
+  let text: string;
+  try {
+    text = await completeViaOpenRouter(context, query);
+  } catch (error) {
+    console.error("RAG completion failed", error);
+    return { mode: "unavailable", text: "Источники нашлись, но ИИ-ответ временно недоступен. Попробуйте ещё раз немного позже." };
+  }
 
   return {
     mode: "rag",
@@ -125,6 +138,8 @@ async function completeViaOpenRouter(context: string, query: string): Promise<st
     throw new Error(`OpenRouter completion failed: ${response.status} ${await response.text()}`);
   }
 
-  const data = (await response.json()) as { choices: { message: { content: string } }[] };
-  return data.choices[0].message.content;
+  const data = (await response.json()) as { choices?: { message?: { content?: string } }[] };
+  const content = data.choices?.[0]?.message?.content?.trim();
+  if (!content) throw new Error("OpenRouter returned an empty answer");
+  return content;
 }

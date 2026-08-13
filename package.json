@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "knowledge:import": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/import-knowledge-docx.ps1",
+    "knowledge:ingest": "tsx -r dotenv/config prisma/ingest-knowledge.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
