@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Yeseva_One, PT_Serif, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { LegalFooter } from "@/components/LegalFooter";
+import { RootFooter } from "@/components/RootFooter";
 
 // Дизайн-язык — plans/2026-07-25-yasen-hren-tz-design.md, раздел 2.2:
 // Yeseva One (имена архетипов, заголовки) · PT Serif (тело текста) · JetBrains Mono (технические подписи, UI)
@@ -48,7 +48,7 @@ export default function RootLayout({
         <div className="relative z-10 flex min-h-screen flex-col">
           {children}
           <div className="mt-auto">
-            <LegalFooter />
+            <RootFooter />
           </div>
         </div>
       </body>
