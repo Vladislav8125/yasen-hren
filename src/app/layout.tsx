@@ -33,7 +33,7 @@ export const metadata: Metadata = {
 // у публичных страниц свой каркас ((public)/layout.tsx), у личного
 // кабинета — сайдбар ((cabinet)/layout.tsx), у лендинга (/) — вообще
 // без шапки (полноэкранное видео). Здесь остаётся только то, что общее
-// для всех: шрифты, фон, боковое окаймление.
+// для всех: шрифты и единый пергаментный фон.
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -45,31 +45,7 @@ export default function RootLayout({
       className={`${yesevaOne.variable} ${ptSerif.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-void text-bone">
-        {/* Боковое окаймление — по образцу вертикальной рамки физических карт
-            (двойная золотая линия, узлы-шестерёнки, ягодная гроздь). Фиксировано
-            по краям вьюпорта, decorative-only — не должно перехватывать клики. */}
-        <div
-          aria-hidden
-          className="pointer-events-none fixed inset-y-0 left-0 z-0 hidden w-16 md:block"
-          style={{
-            backgroundImage: "url(/patterns/side-border-realistic.svg), url(/patterns/ornament-tile-realistic.png)",
-            backgroundRepeat: "repeat-y, repeat-y",
-            backgroundSize: "64px 300px, 300px 300px",
-            backgroundPosition: "0 0, left -55px",
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none fixed inset-y-0 right-0 z-0 hidden w-16 md:block"
-          style={{
-            backgroundImage: "url(/patterns/side-border-realistic.svg), url(/patterns/ornament-tile-realistic.png)",
-            backgroundRepeat: "repeat-y, repeat-y",
-            backgroundSize: "64px 300px, 300px 300px",
-            backgroundPosition: "0 0, left -55px",
-            transform: "scaleX(-1)",
-          }}
-        />
-        <div className="relative z-10 flex min-h-screen flex-col md:px-16">
+        <div className="relative z-10 flex min-h-screen flex-col">
           {children}
           <div className="mt-auto">
             <LegalFooter />
