@@ -27,3 +27,17 @@ export async function updateOrderStatus(formData: FormData) {
   if (status === "CANCELLED") await voidShopCommission(id);
   revalidatePath("/admin/shop");
 }
+
+export async function updatePublicOrderStatus(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  const allowed = ["PENDING", "PAID", "CANCELLED", "FULFILLED"];
+  if (!id || !allowed.includes(status)) return;
+
+  await prisma.publicShopOrder.update({
+    where: { id },
+    data: { status, ...(status === "PAID" ? { paidAt: new Date() } : {}) },
+  });
+  revalidatePath("/admin/shop");
+}

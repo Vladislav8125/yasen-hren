@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getShopProduct } from "@/lib/shop";
-import { updateOrderStatus } from "./actions";
+import { PUBLIC_SHOP_PRODUCTS, rub } from "@/lib/public-shop";
+import { updateOrderStatus, updatePublicOrderStatus } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
   REQUESTED: "Запрошено",
@@ -10,10 +11,10 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AdminShopPage() {
-  const orders = await prisma.shopOrder.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { user: true, psychologist: true },
-  });
+  const [orders, publicOrders] = await Promise.all([
+    prisma.shopOrder.findMany({ orderBy: { createdAt: "desc" }, include: { user: true, psychologist: true } }),
+    prisma.publicShopOrder.findMany({ orderBy: { createdAt: "desc" } }),
+  ]);
 
   const active = orders.filter((o) => o.status === "REQUESTED" || o.status === "CONTACTED");
   const rest = orders.filter((o) => o.status === "COMPLETED" || o.status === "CANCELLED");
@@ -21,6 +22,14 @@ export default async function AdminShopPage() {
   return (
     <main className="p-6">
       <h1 className="font-display text-2xl text-parchment-hi mb-6">Заказы магазина</h1>
+
+      <section className="mb-12 max-w-4xl">
+        <h2 className="font-technical text-xs uppercase tracking-widest text-gold-bright mb-3">Заказы с публичной витрины</h2>
+        {publicOrders.length === 0 ? <p className="font-body text-bone-dim">Пока нет заказов с сайта /shop.</p> : <div className="flex flex-col gap-3">{publicOrders.map((order) => {
+          const product = PUBLIC_SHOP_PRODUCTS.find((item) => item.id === order.product);
+          return <div key={order.id} className="rounded-lg border border-gold/50 bg-void-elevated p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-display text-lg text-parchment-hi">{product?.title ?? order.product}</p><p className="mt-1 font-body text-sm text-bone-dim">{order.name} · {order.email} · {order.phone}</p><p className="mt-1 font-technical text-[10px] uppercase tracking-widest text-gold">{order.quantity} шт. · {rub(order.amount / 100)} · {order.createdAt.toLocaleString("ru-RU")}</p>{order.deliveryAddress && <p className="mt-2 font-body text-sm text-bone">Доставка: {order.deliveryAddress}</p>}{order.comment && <p className="mt-1 font-body text-sm text-bone-dim">Комментарий: {order.comment}</p>}{order.promoCode && <p className="mt-1 font-technical text-[10px] uppercase text-gold">Промокод: {order.promoCode}</p>}</div><form action={updatePublicOrderStatus} className="flex flex-wrap gap-2"><input type="hidden" name="id" value={order.id} /><select name="status" defaultValue={order.status} className="rounded border border-void-border bg-void px-2 py-1.5 font-technical text-xs text-bone"><option value="PENDING">Ожидает оплаты</option><option value="PAID">Оплачен</option><option value="FULFILLED">Выполнен</option><option value="CANCELLED">Отменён</option></select><button className="rounded border border-gold px-3 py-1.5 font-technical text-xs uppercase text-gold hover:bg-gold/10">Сохранить</button></form></div></div>;
+        })}</div>}
+      </section>
 
       {active.length === 0 ? (
         <p className="font-body text-bone-dim mb-8">Активных заказов нет.</p>

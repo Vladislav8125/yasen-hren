@@ -12,8 +12,8 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex items-center justify-between border-b border-void-border px-6 py-4">
-        <Link href="/" className="font-display text-lg text-parchment-hi">
+      <header className="relative z-40 flex items-center justify-between border-b border-void-border bg-void/95 px-4 py-3 backdrop-blur sm:px-6 sm:py-4">
+        <Link href="/" className="whitespace-nowrap font-display text-base tracking-wide text-parchment-hi sm:text-lg">
           ЯСЕН ХРЕН
         </Link>
         <PublicNav loggedIn={Boolean(session?.user)} />
