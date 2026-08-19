@@ -331,6 +331,30 @@ model ShopOrder {
   referralCommission ReferralCommission?
 }
 
+// Заказы из публичной витрины /shop. Покупателю не нужно создавать
+// кабинет, поэтому контактные данные заказа хранятся отдельно от User.
+// После подключения Робокассы сюда добавятся id платежа и его статус.
+model PublicShopOrder {
+  id              String   @id @default(cuid())
+  product         ShopProductId
+  amount          Int      // копейки, фиксируется на момент заказа
+  quantity        Int      @default(1)
+  name            String
+  email           String
+  phone           String
+  deliveryAddress String?
+  comment         String?
+  promoCode       String?
+  status          String   @default("PENDING") // PENDING / PAID / CANCELLED / FULFILLED
+  paymentProvider String?
+  paymentId       String?  @unique
+  createdAt       DateTime @default(now())
+  paidAt          DateTime?
+
+  @@index([status, createdAt])
+  @@index([email, createdAt])
+}
+
 model GlossaryTerm {
   id            String   @id @default(cuid())
   term          String

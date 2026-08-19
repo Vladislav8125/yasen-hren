@@ -106,6 +106,13 @@ export default async function ProfilePage() {
           {tariff === "FREE" ? "Оформить подписку" : "Управление подпиской"}
         </Link>
 
+        <Link
+          href="/profile/orders"
+          className="mt-3 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
+        >
+          Мои прошлые заказы
+        </Link>
+
         {canUserAccess(tariff, "CONSULTATION") && (
           <Link
             href="/consultation"
