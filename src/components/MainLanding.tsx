@@ -151,7 +151,7 @@ export function MainLanding() {
     <main ref={landingRef} className="landing-shell overflow-hidden">
       <section className="relative isolate flex min-h-[min(780px,100svh)] flex-col overflow-hidden text-[#fff8e6]">
         <video className="absolute inset-0 h-full w-full object-cover" src="/video/ях1.mp4" autoPlay muted loop playsInline />
-        <div className="absolute inset-0 bg-[#15100b]/55" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,4,3,.90)_0%,rgba(10,6,3,.79)_48%,rgba(10,6,3,.58)_100%)]" />
         <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-5 px-5 py-5 md:px-8">
           <Link href="/" className="font-display text-xl tracking-wide">ЯСЕН ХРЕН</Link>
           <nav className="hidden items-center gap-5 font-technical text-[11px] uppercase tracking-widest md:flex">
