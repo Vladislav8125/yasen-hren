@@ -2,15 +2,15 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { embedTexts } from "../src/lib/embeddings";
 import { knowledgeChunks, knowledgeDocumentChunks } from "./knowledge-data";
+import { isOpenRouterConfigured } from "../src/lib/openrouter";
 
 // Индексация базы знаний для RAG — архитектурное ТЗ раздел 7.
-// Требует VOYAGE_API_KEY (эмбеддинги считаются один раз при заливке
+// Требует OPENROUTER_API_KEY (эмбеддинги считаются один раз при заливке
 // контента, не на каждый вопрос пользователя). Запуск: pnpm tsx -r dotenv/config prisma/ingest-knowledge.ts
 //
-// Без оплаты на аккаунте Voyage — лимит 3 запроса/мин, поэтому весь
-// контент собирается в один список и эмбеддится ОДНИМ batch-запросом
-// (embedTexts), а не по одному чанку — иначе гарантированный 429 уже на
-// 4-м куске (проверено вживую 2026-07-26).
+// Контент отправляется пакетами, чтобы сократить число API-запросов. Все
+// векторы рассчитываются до изменения БД, затем индекс заменяется одной
+// транзакцией — старые и новые пространства эмбеддингов не смешиваются.
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -22,13 +22,13 @@ interface PendingChunk {
 }
 
 async function createVectors(chunks: PendingChunk[]) {
-  // Размер 128 рекомендован Voyage для крупных наборов. Векторы получаем до
-  // изменения БД: ошибка внешнего API не уничтожит уже работающий индекс.
+  // Векторы получаем до изменения БД: ошибка внешнего API не уничтожит уже
+  // работающий индекс.
   const vectors: number[][] = [];
   for (let index = 0; index < chunks.length; index += 128) {
     const batch = chunks.slice(index, index + 128);
     console.log(`Эмбеддинги ${index + 1}–${index + batch.length} из ${chunks.length}...`);
-    vectors.push(...await embedTexts(batch.map((chunk) => chunk.content), "document"));
+    vectors.push(...await embedTexts(batch.map((chunk) => chunk.content)));
   }
   return vectors;
 }
@@ -51,8 +51,8 @@ async function replaceChunks(chunks: PendingChunk[], vectors: number[][]) {
 }
 
 async function main() {
-  if (!process.env.VOYAGE_API_KEY) {
-    console.error("VOYAGE_API_KEY не задан — индексация невозможна. См. .env.example.");
+  if (!isOpenRouterConfigured()) {
+    console.error("OpenRouter не настроен — индексация невозможна. См. .env.example.");
     process.exit(1);
   }
 
@@ -80,7 +80,7 @@ async function main() {
     pending.push({ sourceType: "glossary", sourceId: t.term, content: `${t.term}: ${t.definition}` });
   }
 
-  console.log(`Индексирую ${pending.length} кусков через Voyage...`);
+  console.log(`Индексирую ${pending.length} кусков через OpenRouter...`);
   const vectors = await createVectors(pending);
   console.log("Заменяю индекс одной транзакцией...");
   await replaceChunks(pending, vectors);

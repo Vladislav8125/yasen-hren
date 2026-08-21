@@ -112,3 +112,184 @@ body {
 .bg-void-elevated {
   box-shadow: 0 2px 10px -2px rgba(59, 46, 32, 0.12);
 }
+.hero-emphasis {
+  text-decoration: underline;
+  -webkit-text-decoration-color: var(--gold-bright);
+  text-decoration-color: var(--gold-bright);
+  text-underline-offset: 0.12em;
+  text-decoration-thickness: 0.08em;
+}
+
+/* Главный лендинг: чистый пергамент из landing-new и два контрастных режима. */
+.landing-shell {
+  background: #f2e7cf;
+}
+
+.landing-paper {
+  background-color: #f2e7cf;
+  background-image:
+    linear-gradient(115deg, rgb(255 250 239 / 88%), rgb(239 222 189 / 70%)),
+    url("/landing/parchment-texture.png");
+  background-position: center;
+  background-size: cover;
+}
+
+.landing-ink {
+  background-color: #201713;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgb(226 188 105 / 18%) 1px, transparent 1.2px),
+    linear-gradient(135deg, rgb(255 237 192 / 5%), transparent 40%, rgb(184 137 46 / 7%));
+  background-size: 20px 20px, 100% 100%;
+}
+
+.landing-ink .text-parchment-hi {
+  color: #fff8e6;
+}
+
+.landing-ink .text-bone-dim {
+  color: rgb(255 248 230 / 75%);
+}
+
+.landing-ink .bg-void-elevated {
+  background-color: rgb(255 248 230 / 7%);
+  box-shadow: none;
+}
+
+.landing-ink .border-void-border {
+  border-color: rgb(255 248 230 / 22%);
+}
+
+.hero-brown-accent {
+  color: #b96543;
+  text-decoration: underline;
+  text-decoration-color: #fff8e6;
+  text-decoration-thickness: 0.075em;
+  text-underline-offset: 0.12em;
+}
+
+/* Горизонтальные входы секций при прокрутке. */
+.landing-shell > section:not(:first-child) {
+  opacity: 0;
+  transform: translateX(3.5rem);
+  transition: opacity 700ms ease, transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing-shell > section:nth-of-type(even) {
+  transform: translateX(-3.5rem);
+}
+
+.landing-shell > section.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Карточки тарифов повторяют мягкую бумажную композицию landing-new. */
+.landing-plan {
+  min-height: 100%;
+  border: 1px solid rgb(42 27 19 / 23%);
+  border-radius: 2.5rem;
+  padding: 2rem;
+  color: #2a1b13;
+  background: rgb(255 250 239 / 68%);
+}
+
+.landing-plan-featured {
+  border-color: var(--red-primary);
+  color: #fff9ed;
+  background: var(--red-primary);
+}
+
+.landing-plan-featured .story-cta {
+  border-color: rgb(255 249 237 / 72%);
+  color: #fff9ed;
+}
+
+.story-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  width: 100%;
+  border: 1px solid rgb(42 27 19 / 48%);
+  border-radius: 999px;
+  padding: 0.85rem 1.15rem;
+  font-family: var(--font-technical), monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.story-cta:hover {
+  transform: translateY(-2px);
+  background: rgb(42 27 19 / 8%);
+}
+
+.landing-plan-featured .story-cta:hover {
+  background: rgb(255 249 237 / 12%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-shell > section:not(:first-child) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.flip-card-inner,
+.audience-flip-inner {
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.flip-card:hover .flip-card-inner,
+.flip-card:focus .flip-card-inner,
+.audience-flip:hover .audience-flip-inner,
+.audience-flip:focus .audience-flip-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-face,
+.audience-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.flip-back,
+.audience-back {
+  transform: rotateY(180deg);
+}
+
+.elegant-phone {
+  position: relative;
+  padding: 0.45rem;
+  border: 1px solid rgb(184 137 46 / 75%);
+  border-radius: 2.8rem;
+  background: linear-gradient(145deg, #4b4035, #171310 62%, #8f6a32);
+  box-shadow: 0 26px 50px rgb(42 31 20 / 28%), inset 0 0 0 1px rgb(255 255 255 / 18%);
+}
+
+.phone-screen {
+  overflow: hidden;
+  border: 3px solid #181411;
+  border-radius: 2.4rem;
+  background: var(--void);
+}
+
+.phone-speaker {
+  position: absolute;
+  z-index: 2;
+  top: 0.8rem;
+  left: 50%;
+  width: 4.3rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: #0b0908;
+  transform: translateX(-50%);
+}

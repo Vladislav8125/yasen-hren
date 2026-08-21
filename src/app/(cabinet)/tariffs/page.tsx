@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { effectiveTariff } from "@/lib/access";
+import { isRobokassaConfigured } from "@/lib/robokassa";
 import { subscribeToTariff } from "./actions";
 
 const PLANS = [
@@ -9,13 +10,13 @@ const PLANS = [
     tariff: "FREE" as const,
     name: "Базовый уровень",
     price: "0 ₽",
-    features: ["1 карта в день", "Короткое описание карты", "Глоссарий — полностью открыт"],
+    features: ["1 карта в день", "Короткое описание карты", "35 карт основной колоды и 8 карт Путника", "Глоссарий — полностью открыт"],
   },
   {
     tariff: "STANDARD" as const,
     name: "Standard",
     price: "590 ₽ / мес",
-    features: ["1 карта в день", "+ развёрнутое описание", "+ инструкция как пользоваться", "Базовое «Зеркало» *"],
+    features: ["1 карта в день", "+ развёрнутое описание", "+ инструкция как пользоваться", "35 карт основной колоды и 8 карт Путника", "Базовое «Зеркало» *"],
   },
   {
     tariff: "PREMIUM" as const,
@@ -26,6 +27,7 @@ const PLANS = [
       "Выбор сферы жизни для второй карты",
       "Развёрнутое описание",
       "Инструкция использования",
+      "35 карт основной колоды и 8 карт Путника",
       "Полное «Зеркало» *",
       "Консультация с основателем, 1 раз/мес",
     ],
@@ -39,6 +41,7 @@ export default async function TariffsPage() {
 
   const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });
   const current = effectiveTariff(user);
+  const paymentsReady = isRobokassaConfigured();
 
   const isCurrent = (tariff: string) => tariff === current;
 
@@ -97,7 +100,7 @@ export default async function TariffsPage() {
                 <p className="rounded border border-gold p-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold-bright">
                   {statusText()}
                 </p>
-              ) : (
+              ) : paymentsReady ? (
                 <form action={subscribeToTariff}>
                   <input type="hidden" name="tariff" value={plan.tariff} />
                   <input name="promoCode" placeholder="Промокод партнёра" className="mb-2 w-full rounded border border-void-border bg-void px-3 py-2 text-sm text-bone" />
@@ -108,11 +111,21 @@ export default async function TariffsPage() {
                     Оформить
                   </button>
                 </form>
+              ) : (
+                <p className="text-center font-body text-sm text-bone-dim">
+                  Приём платежей скоро будет подключён
+                </p>
               )}
             </div>
           </div>
         ))}
       </div>
+      <section className="w-full max-w-4xl rounded-2xl border border-gold/40 bg-void-elevated p-6 md:p-8">
+        <p className="font-technical text-xs uppercase tracking-widest text-gold">Для команд и HR</p>
+        <h2 className="mt-2 font-display text-2xl text-parchment-hi">Нужен формат для команды?</h2>
+        <p className="mt-3 max-w-2xl font-body leading-relaxed text-bone-dim">Игра, фасилитация и работа с командной динамикой для сотрудников, руководителей и HR. Это отдельный корпоративный формат, не часть индивидуального тарифа.</p>
+        <a href="/partners" className="mt-5 inline-block rounded border border-gold px-5 py-3 font-technical text-xs uppercase tracking-widest text-gold hover:bg-gold/10">Обсудить с Академией</a>
+      </section>
     </div>
   );
 }

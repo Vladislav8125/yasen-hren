@@ -21,6 +21,18 @@ enum Tariff {
   PREMIUM
 }
 
+enum PaymentProvider {
+  YOOKASSA
+  ROBOKASSA
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCEL_AT_PERIOD_END
+  CANCELED
+  PAST_DUE
+}
+
 enum CardFamily {
   LIGHT // Светлая Семья
   SHADOW // Семья Теней
@@ -126,6 +138,7 @@ model User {
 
   draws               DailyDraw[]
   payments            Payment[]
+  subscription         Subscription?
   consultations       Consultation[]
   shopOrders          ShopOrder[]
   glossarySubmissions GlossaryTerm[] @relation("submittedBy")
@@ -285,12 +298,40 @@ model Payment {
   tariff            Tariff
   amount            Int // в копейках
   status            String // pending / succeeded / canceled
+  provider          PaymentProvider @default(YOOKASSA)
   yookassaPaymentId String?   @unique
+  robokassaInvoiceId String?  @unique
+  robokassaParentInvoiceId String?
+  recurring         Boolean   @default(false)
   createdAt         DateTime  @default(now())
   paidAt            DateTime?
 
   user User @relation(fields: [userId], references: [id])
   referralCommission ReferralCommission?
+}
+
+// Подписка хранит только технические идентификаторы Robokassa. Данные карты
+// через сайт не проходят и в БД не сохраняются.
+model Subscription {
+  id                    String             @id @default(cuid())
+  userId                String             @unique
+  provider              PaymentProvider    @default(ROBOKASSA)
+  tariff                Tariff
+  status                SubscriptionStatus @default(ACTIVE)
+  initialInvoiceId      String             @unique
+  lastInvoiceId         String?
+  lastPaymentAt         DateTime?
+  nextChargeAt          DateTime
+  cancelAtPeriodEnd     Boolean            @default(false)
+  cancelRequestedAt     DateTime?
+  canceledAt            DateTime?
+  reminderSentFor       DateTime?          @db.Date
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextChargeAt])
 }
 
 model Consultation {
@@ -350,8 +391,8 @@ model KnowledgeChunk {
   sourceType String // "methodology" | "glossary" | "card"
   sourceId   String? // id термина/карты, если применимо
   content    String
-  // 1024 — дефолтный output_dimension у Voyage AI (сейчас voyage-4, см.
-  // src/lib/embeddings.ts). Если модель/dimension сменится — размерность
+  // 1024 — выбранная размерность text-embedding-3-large через OpenRouter
+  // (см. src/lib/embeddings.ts). Если модель/dimension сменится — размерность
   // здесь и в src/lib/embeddings.ts должны совпадать, иначе pgvector
   // откажется писать строки.
   embedding  Unsupported("vector(1024)")?

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { effectiveTariff, canUserAccess } from "@/lib/access";
 import { createTelegramLinkToken } from "@/lib/telegramLink";
 import { createVkLinkToken } from "@/lib/vkLink";
+import { cancelAutoRenewal, resumeAutoRenewal } from "./actions";
 
 const TARIFF_LABEL: Record<string, string> = {
   FREE: "Free",
@@ -20,6 +21,7 @@ export default async function ProfilePage() {
 
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
+    include: { subscription: true },
   });
   const tariff = effectiveTariff(user);
   const expired = user.tariff !== "FREE" && tariff === "FREE";
@@ -61,6 +63,22 @@ export default async function ProfilePage() {
               <dd>{user.tariffExpiresAt.toLocaleDateString("ru-RU")}</dd>
             </div>
           )}
+          {user.subscription && (
+            <div id="subscription" className="border-b border-void-border pb-3">
+              <dt className="text-bone-dim">Автопродление</dt>
+              <dd className="mt-1">
+                {user.subscription.cancelAtPeriodEnd ? (
+                  <span className="text-bone-dim">
+                    Отключено. Доступ сохранится до {user.tariffExpiresAt?.toLocaleDateString("ru-RU") ?? "конца периода"}.
+                  </span>
+                ) : (
+                  <span className="text-gold-bright">
+                    Включено. Следующее списание: {user.subscription.nextChargeAt.toLocaleDateString("ru-RU")}.
+                  </span>
+                )}
+              </dd>
+            </div>
+          )}
           <div className="flex justify-between border-b border-void-border pb-3">
             <dt className="text-bone-dim">Telegram</dt>
             <dd className={user.telegramChatId ? "text-green-600" : "text-bone-dim"}>
@@ -78,6 +96,21 @@ export default async function ProfilePage() {
             <dd>{user.createdAt.toLocaleDateString("ru-RU")}</dd>
           </div>
         </dl>
+
+        {user.subscription?.cancelAtPeriodEnd ? (
+          <form action={resumeAutoRenewal} className="mt-6">
+            <button className="w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright">
+              Продолжить автопродление
+            </button>
+          </form>
+        ) : user.subscription ? (
+          <form action={cancelAutoRenewal} className="mt-6 rounded border border-red-warning/50 bg-red-warning/10 p-4">
+            <p className="font-body text-sm text-bone">Автопродление отключится, но доступ останется до конца уже оплаченного периода.</p>
+            <button className="mt-3 w-full rounded border border-red-warning py-2.5 text-center font-technical text-xs uppercase tracking-widest text-red-warning hover:bg-red-warning/10">
+              Отключить автопродление
+            </button>
+          </form>
+        ) : null}
 
         {!user.telegramChatId && (
           <a

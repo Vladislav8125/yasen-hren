@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { embedText } from "@/lib/embeddings";
 import { ALL_KNOWLEDGE_DOCUMENTS } from "@/data/knowledge";
+import { fetchOpenRouter, isOpenRouterConfigured } from "@/lib/openrouter";
 
 // RAG-ассистент — архитектурное ТЗ, раздел 7. Два режима:
 // 1. Дословный — точное совпадение с термином глоссария/картой, ответ
@@ -110,10 +111,10 @@ export async function askAssistant(query: string): Promise<AssistantAnswer> {
   const exact = await findExactMatch(query);
   if (exact) return exact;
 
-  if (!process.env.VOYAGE_API_KEY || !process.env.OPENROUTER_API_KEY) {
+  if (!isOpenRouterConfigured()) {
     return {
       mode: "unavailable",
-      text: "Не нашла точного совпадения, а смысловой поиск пока не подключён (нет ключей эмбеддингов/ИИ). Попробуйте спросить конкретное название карты или термина.",
+      text: "Не нашла точного совпадения, а смысловой поиск пока не подключён (нет ключа ИИ). Попробуйте спросить конкретное название карты или термина.",
     };
   }
 
@@ -151,35 +152,20 @@ export async function askAssistant(query: string): Promise<AssistantAnswer> {
 async function completeViaOpenRouter(context: string, query: string): Promise<string> {
   const model = process.env.OPENROUTER_MODEL ?? "anthropic/claude-sonnet-5";
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": process.env.APP_URL ?? "http://localhost:3000",
-      // HTTP-заголовки — только Latin1/ASCII, кириллица здесь роняет fetch
-      // с ByteString-ошибкой (проверено вживую 2026-07-26) — транслит вместо "Ясен Хрен".
-      "X-Title": "Yasen Khren",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 600,
-      // Без этого модель на OpenRouter по умолчанию включает extended
-      // thinking и может истратить весь max_tokens на рассуждения, вернув
-      // пустой content (проверено вживую 2026-07-26 — с reasoning
-      // включённым content был null при том же лимите токенов).
-      reasoning: { enabled: false },
-      messages: [
-        {
-          role: "system",
-          content:
-            "Ты — ассистент приложения «Ясен Хрен» (архетипические карты психологической гигиены). " +
-            "Отвечай ТОЛЬКО на основе предоставленных источников ниже, ничего не выдумывай. " +
-            "Если ответа в источниках нет — прямо скажи, что не знаешь. Отвечай кратко, по-русски, тепло, без канцелярита.",
-        },
-        { role: "user", content: `Источники:\n${context}\n\nВопрос: ${query}` },
-      ],
-    }),
+  const response = await fetchOpenRouter("chat/completions", {
+    model,
+    max_tokens: 600,
+    reasoning: { enabled: false },
+    messages: [
+      {
+        role: "system",
+        content:
+          "Ты — ассистент приложения «Ясен Хрен» (архетипические карты психологической гигиены). " +
+          "Отвечай ТОЛЬКО на основе предоставленных источников ниже, ничего не выдумывай. " +
+          "Если ответа в источниках нет — прямо скажи, что не знаешь. Отвечай кратко, по-русски, тепло, без канцелярита.",
+      },
+      { role: "user", content: `Источники:\n${context}\n\nВопрос: ${query}` },
+    ],
   });
 
   if (!response.ok) {

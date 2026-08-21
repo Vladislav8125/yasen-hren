@@ -18,11 +18,11 @@ function getTgBot(): { api: { sendMessage: (chatId: string, text: string, extra?
   }
 }
 
-async function sendTelegram(chatId: string, text: string): Promise<boolean> {
+async function sendTelegram(chatId: string, text: string, extra?: Record<string, unknown>): Promise<boolean> {
   try {
     const bot = getTgBot();
     if (!bot) return false;
-    await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
+    await bot.api.sendMessage(chatId, text, { parse_mode: "HTML", ...extra });
     return true;
   } catch {
     return false;
@@ -115,54 +115,69 @@ export async function sendDailyReminder(): Promise<BroadcastResult> {
   return { total: users.length, sent, failed };
 }
 
-/** За 2 дня до конца платного тарифа — напоминание о продлении. */
-export async function sendTariffExpiryReminder(): Promise<BroadcastResult> {
-  const inTwoDays = new Date();
-  inTwoDays.setUTCDate(inTwoDays.getUTCDate() + 2);
-  const start = new Date(Date.UTC(inTwoDays.getUTCFullYear(), inTwoDays.getUTCMonth(), inTwoDays.getUTCDate()));
+/** За 3 дня до автосписания — напоминание с понятным способом отключить продление. */
+export async function sendAutoRenewalReminder(): Promise<BroadcastResult> {
+  const inThreeDays = new Date();
+  inThreeDays.setUTCDate(inThreeDays.getUTCDate() + 3);
+  const start = new Date(Date.UTC(inThreeDays.getUTCFullYear(), inThreeDays.getUTCMonth(), inThreeDays.getUTCDate()));
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
 
-  const users = await prisma.user.findMany({
+  const subscriptions = await prisma.subscription.findMany({
     where: {
-      tariff: { not: "FREE" },
-      tariffExpiresAt: { gte: start, lt: end },
-      OR: [
-        { telegramChatId: { not: null } },
-        { vkUserId: { not: null } },
-      ],
+      status: "ACTIVE",
+      cancelAtPeriodEnd: false,
+      nextChargeAt: { gte: start, lt: end },
+      OR: [{ reminderSentFor: null }, { reminderSentFor: { lt: start } }],
     },
-    select: { id: true, telegramChatId: true, vkUserId: true, name: true, tariff: true },
+    include: {
+      user: { select: { id: true, telegramChatId: true, vkUserId: true, name: true } },
+    },
   });
 
-  if (users.length === 0) return { total: 0, sent: 0, failed: 0 };
+  if (subscriptions.length === 0) return { total: 0, sent: 0, failed: 0 };
 
   let sent = 0;
   let failed = 0;
+  const appUrl = process.env.APP_URL ?? "https://yasenhren.ru";
 
-  for (const user of users) {
-    const tariffName = user.tariff === "PREMIUM" ? "Premium" : "Standard";
+  for (const subscription of subscriptions) {
+    const user = subscription.user;
+    const tariffName = subscription.tariff === "PREMIUM" ? "Premium" : "Standard";
+    const chargeDate = subscription.nextChargeAt.toLocaleDateString("ru-RU");
     const text = [
-      `<b>${user.name}, твой тариф ${tariffName} заканчивается через 2 дня.</b>`,
+      `<b>${user.name}, ${chargeDate} будет продлён тариф ${tariffName}.</b>`,
       "",
-      "Без продления ты потеряешь доступ к развёрнутым описаниям карт и второй карте дня. Зеркало тоже закроется.",
+      "Если продолжаешь путь — ничего делать не нужно. Если хочешь отключить автопродление, сделай это в профиле: доступ сохранится до конца уже оплаченного периода.",
       "",
-      "Продли сейчас — и продолжай без перерыва.",
-      "",
-      `<a href="https://yasen-hren.ru/tariffs">Продлить тариф</a>`,
+      `<a href="${appUrl}/profile#subscription">Управление подпиской</a>`,
     ].join("\n");
 
     let ok = false;
     if (user.telegramChatId) {
-      ok = await sendTelegram(user.telegramChatId, text);
+      ok = await sendTelegram(user.telegramChatId, text, {
+        reply_markup: {
+          inline_keyboard: [[
+            { text: "Продолжить", url: `${appUrl}/profile` },
+            { text: "Отключить", url: `${appUrl}/profile#subscription` },
+          ]],
+        },
+      });
     }
     if (!ok && user.vkUserId) {
       ok = await sendVk(user.vkUserId, text);
     }
     if (ok) sent++;
     else failed++;
+
+    if (ok) {
+      await prisma.subscription.update({
+        where: { id: subscription.id },
+        data: { reminderSentFor: start },
+      });
+    }
   }
 
-  return { total: users.length, sent, failed };
+  return { total: subscriptions.length, sent, failed };
 }
 
 // ── Генерация текста через OpenRouter ──
