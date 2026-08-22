@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDailyDraw } from "@/lib/cardEngine";
 import { effectiveTariff } from "@/lib/access";
 import { TodayCards } from "@/components/TodayCards";
+import { ShareAppLink } from "@/components/ShareAppLink";
 
 function todayLabel() {
   return new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
@@ -36,9 +36,7 @@ export default async function TodayPage() {
           tariff={tariff}
         />
       </div>
-      <Link href="/" className="font-technical text-xs uppercase tracking-widest text-gold underline underline-offset-4 hover:text-gold-bright">
-        Поделиться с другом
-      </Link>
+      <ShareAppLink />
     </div>
   );
 }
