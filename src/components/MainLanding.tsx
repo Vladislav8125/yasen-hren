@@ -41,10 +41,10 @@ const pains = [
 ];
 
 const cabinetSlides = [
-  { title: "Карта дня", text: "35 карт основной колоды: каждый день — новый персонаж, состояние или внутренний сюжет.", src: "/cards/perfektsionchik.png", alt: "Карта Перфекциончик" },
-  { title: "Зеркало", text: "История карт помогает увидеть повторяющиеся реакции и понять, кто возвращается чаще всего.", src: "/landing/screen-mirror.png", alt: "Экран раздела Зеркало" },
-  { title: "Ассистент", text: "Задай вопрос и разберись в ситуации без необходимости часами прокручивать её в голове.", src: "/landing/screen-assistant.png", alt: "Экран раздела Ассистент" },
-  { title: "Карты Путника", text: "8 карт Путника: посмотри, куда ты движешься и что меняется по дороге.", src: "/cards/dobytchik.png", alt: "Карта Добытчик" },
+  { title: "Карта дня", text: "35 карт основной колоды: каждый день — новый персонаж, состояние или внутренний сюжет.", src: "/cards/ded-ohyo.png", alt: "Карта Дед Охё" },
+  { title: "Твой путь", text: "Личный кабинет бережно сохраняет историю открытых карт и ваших откликов. Можно вернуться к любому дню, заметить повторяющиеся сюжеты и увидеть свой путь целиком.", src: "/landing/screen-mirror.png", alt: "Экран раздела Твой путь" },
+  { title: "Бот «Ясен Хрен Помощник»", text: "Задайте вопрос, разберите ситуацию и получите опору, когда не хочется часами прокручивать всё в голове.", src: "/landing/screen-assistant.png", alt: "Экран бота Ясен Хрен Помощник" },
+  { title: "Карты Путника", text: "8 карт, которые помогают определить, по какому пути вы сейчас идёте в своей жизни — и что важно заметить по дороге.", src: "/cards/dobytchik.png", alt: "Карта Путника Добытчик" },
 ];
 
 const formats = [
@@ -55,17 +55,37 @@ const formats = [
 
 const audiences = [
   ["Психологи и психиатры", "Для быстрого контакта с пациентом даже в сложных ситуациях. Карта помогает найти точку входа в разговор.", "/landing/audience-psychologists.png"],
-  ["Помогающие специалисты", "Для коучей, наставников, фасилитаторов и преподавателей, которым нужен живой язык для начала работы.", "/landing/audience-helpers.png"],
+  ["Помогающие специалисты", "Для коучей, наставников, фасилитаторов и преподавателей, которым нужно живое крепкое словцо для начала работы.", "/landing/audience-helpers.png"],
   ["Корпоративные сотрудники", "Когда задач много, напряжение растёт, а восстановление постоянно откладывается.", "/landing/audience-corporate.png"],
   ["Фрилансеры", "Когда работа не заканчивается никогда, а граница между делом и личной жизнью постепенно стирается.", "/landing/audience-freelancers.png"],
   ["Предприниматели", "Чтобы замечать, когда ресурс заканчивается, и не принимать важные решения из хронического истощения.", "/landing/audience-entrepreneurs.png"],
 ];
 
 const team = [
-  ["Фемистоклов Владислав", "Проектный директор и руководитель разработки", "/landing/creator-perfectionist.png"],
-  ["Дмитрий Брехов", "Научный руководитель Академии хренологии", "/landing/creator-ishty.png"],
-  ["Елена Калашникова", "Руководитель направления психологической гигиены", "/landing/creator-babushka.png"],
-  ["Евгений Геллер", "Директор игрового практикума", "/landing/creator-ohyo.png"],
+  {
+    name: "Владислав Фемистоклов",
+    role: "Проектный директор и руководитель разработки",
+    image: "/landing/creator-perfectionist.png",
+    credentials: ["Маркетолог-стратег: B2B и Data-Driven Growth", "Более 7 лет в digital-стратегии и аналитике", "Выстраивает процессы, тестирует гипотезы и собирает сильные команды", "Переводит хаос в понятную систему роста"],
+  },
+  {
+    name: "Дмитрий Брехов",
+    role: "Научный руководитель Академии Хренологии Бытия",
+    image: "/landing/creator-ishty.png",
+    credentials: ["Игропрактик и ведущий трансформационных форматов", "Работает с архетипами и честным разговором о важном", "Помогает увидеть ситуацию объёмнее, без готовых диагнозов", "Соединяет игру, саморефлексию и практику следующего шага"],
+  },
+  {
+    name: "Елена Калашникова",
+    role: "НЮ-мастер душ, арт-коуч, мастер игры «4 Грани»",
+    image: "/landing/creator-babushka.png",
+    credentials: ["Дипломированный мастер трансформационной игры «4 Грани»", "Провела более 100 консультаций", "Более 20 лет моделирует жизненные ситуации", "Соединяет структуру, коучинг и интуицию", "Помогает идти к амбициозным целям без выгорания"],
+  },
+  {
+    name: "Евгений Геллер",
+    role: "Игропрактик и основатель Geller Games",
+    image: "/landing/creator-ohyo.png",
+    credentials: ["Автор 20 бизнес- и трансформационных игр", "Подготовил более 2 000 ведущих в 28 странах", "Основатель бренда Geller Games", "Обучает проведению игр и созданию сильных игровых форматов"],
+  },
 ];
 
 const plans = [
@@ -121,6 +141,8 @@ export function MainLanding() {
   const [selectedSphere, setSelectedSphere] = useState<(typeof spheres)[number][0]>("HARMONY");
   const [cabinetIndex, setCabinetIndex] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [flippedPain, setFlippedPain] = useState<number | null>(null);
+  const [flippedAudience, setFlippedAudience] = useState<number | null>(null);
   const landingRef = useRef<HTMLElement>(null);
   const cabinetSlide = cabinetSlides[cabinetIndex];
 
@@ -153,15 +175,18 @@ export function MainLanding() {
         <video className="absolute inset-0 h-full w-full object-cover" src="/video/ях1.mp4" autoPlay muted loop playsInline />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(25,15,9,.70)_0%,rgba(29,18,10,.48)_52%,rgba(29,18,10,.26)_100%)]" />
         <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-5 px-5 py-5 md:px-8">
-          <Link href="/" className="font-display text-xl tracking-wide">ЯСЕН ХРЕН</Link>
+          <Link href="/landing" className="inline-flex items-center gap-3 font-display text-xl tracking-wide">
+            <span className="relative h-11 w-11 overflow-hidden rounded-full border border-gold/60 bg-parchment shadow-md"><Image src="/landing/yasen-hren-logo.jpg" alt="" fill sizes="44px" className="object-cover object-[50%_20%]" /></span>
+            <span>ЯСЕН ХРЕН</span>
+          </Link>
           <nav className="hidden items-center gap-5 font-technical text-[11px] uppercase tracking-widest md:flex">
             <a href="#about">О приложении</a><a href="#tariffs">Тарифы</a><a href="#faq">Вопросы</a><Link href="/login" className="rounded border border-parchment/50 px-4 py-2 hover:border-gold">Войти</Link>
           </nav>
         </header>
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-16 md:px-8">
           <div className="max-w-3xl">
-            <p className="font-technical text-xs uppercase tracking-[0.18em] text-gold">Академия хренологии и Бабушка ШтобТебя представляют</p>
-            <h1 className="mt-5 font-display text-4xl leading-tight [text-shadow:0_2px_20px_rgba(0,0,0,.9)] sm:text-5xl md:text-7xl">Когда внутри <span className="hero-brown-accent">хрень</span>, а объяснить нечем — <span className="hero-brown-accent">вытащи карту</span>.</h1>
+            <p className="font-technical text-xs uppercase tracking-[0.18em] text-gold">Академия Хренологии Бытия <span className="normal-case tracking-normal">(саморефлексия, архетипы)</span></p>
+            <h1 className="mt-5 font-display text-4xl leading-tight [text-shadow:0_2px_20px_rgba(0,0,0,.9)] sm:text-5xl md:text-7xl">Когда внутри <span className="hero-brown-accent">непонятное состояние</span>.</h1>
             <p className="mt-6 max-w-2xl font-body text-lg leading-relaxed text-[#fff8e6] [text-shadow:0_2px_16px_rgba(0,0,0,.9)] md:text-xl">За несколько минут <strong className="hero-brown-accent font-semibold">увидишь, что с тобой происходит</strong>, и обретёшь <strong className="hero-brown-accent font-semibold">состояние действия</strong>.</p>
             <p className="mt-4 max-w-2xl font-body text-lg font-semibold leading-relaxed text-[#fff8e6] [text-shadow:0_2px_16px_rgba(0,0,0,.9)]">«Ясен Хрен» — игра <strong className="hero-brown-accent">психологической гигиены</strong> для тех, кто <strong className="hero-brown-accent">устал тащить всё на себе</strong>.</p>
             <Link href="/register" className="mt-9 inline-block rounded bg-red-primary px-14 py-6 font-technical text-sm uppercase tracking-[0.16em] text-[#fff8e6] shadow-lg transition hover:bg-red-primary-dark">Получить карту</Link>
@@ -173,13 +198,13 @@ export function MainLanding() {
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.15fr_.85fr] lg:items-start">
           <div>
             <p className="font-technical text-xs uppercase tracking-widest text-gold">О приложении</p>
-            <h2 className="mt-3 max-w-3xl font-display text-4xl leading-tight text-parchment-hi md:text-5xl">Понимать себя легче, когда есть язык для состояния.</h2>
+            <h2 className="mt-3 max-w-3xl font-display text-4xl leading-tight text-parchment-hi md:text-5xl">Понимать себя легче, когда есть крепкое словцо для состояния.</h2>
             <div className="mt-7 grid gap-3 sm:grid-cols-3">
               {[["Отношения", "Говорить честнее и слышать друг друга без лишней обороны."], ["Работа", "Действовать без надрыва и замечать, что забирает силы."], ["Здоровье", "Видеть предел раньше, чем тело вынужденно остановит."]].map(([title, text]) => <div key={title} className="rounded-2xl border border-[#8d6d42]/30 bg-[#fffaf0]/70 p-5"><p className="font-display text-xl text-red-primary">{title}</p><p className="mt-2 font-body text-sm leading-relaxed text-bone-dim">{text}</p></div>)}
             </div>
             <div className="mt-7 max-w-3xl space-y-4 font-body text-lg leading-relaxed text-bone-dim">
               <p>«Ясен Хрен» — приложение ежедневной психологической гигиены. Карта даёт образ для состояния, «Зеркало» помогает заметить повторяющиеся сценарии, а следующий шаг возвращает чувство выбора.</p>
-              <p>Под народной оболочкой — архетипический язык, системный взгляд, юмор и практика малого действия. Это инструмент саморефлексии и просвещения, а не диагностика и не замена терапии.</p>
+              <p>Под народной оболочкой — архетипическое крепкое словцо, системный взгляд, юмор и практика малого действия. Это инструмент саморефлексии и просвещения, а не диагностика и не замена терапии.</p>
             </div>
           </div>
           <aside className="rounded-2xl border border-gold/45 bg-void-elevated p-6 lg:mt-[14.75rem] md:p-7">
@@ -196,9 +221,9 @@ export function MainLanding() {
       <section className="landing-ink px-5 py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-6xl">
           <p className="font-technical text-xs uppercase tracking-widest text-gold">Узнаёте себя?</p>
-          <h2 className="mt-3 max-w-4xl font-display text-4xl leading-tight text-parchment-hi md:text-5xl">Когда внутри хрень — пора поговорить с собой честно.</h2>
+          <h2 className="mt-3 max-w-4xl font-display text-4xl leading-tight text-parchment-hi md:text-5xl">Когда у тебя хреновое состояние — пора поговорить с собой честно.</h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {pains.map(([icon, title, text]) => <article key={title} tabIndex={0} className="flip-card h-64 rounded-2xl outline-none"><div className="flip-card-inner"><div className="flip-face flex rounded-2xl border border-void-border bg-void-elevated p-5"><div className="m-auto"><p className="font-display text-4xl leading-none text-gold">{icon}</p><h3 className="mt-5 font-display text-2xl leading-tight text-parchment-hi">{title}</h3></div></div><div className="flip-face flip-back flex rounded-2xl border border-gold/50 bg-red-primary p-5"><p className="m-auto font-body leading-relaxed text-[#fff8e6]">{text}</p></div></div></article>)}
+            {pains.map(([icon, title, text], index) => <article key={title} tabIndex={0} role="button" aria-pressed={flippedPain === index} onClick={() => setFlippedPain(flippedPain === index ? null : index)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setFlippedPain(flippedPain === index ? null : index); } }} className={`flip-card h-64 cursor-pointer rounded-2xl outline-none ${flippedPain === index ? "is-flipped" : ""}`}><div className="flip-card-inner"><div className="flip-face flex rounded-2xl border border-void-border bg-void-elevated p-5"><div className="m-auto"><p className="font-display text-4xl leading-none text-gold">{icon}</p><h3 className="mt-5 font-display text-2xl leading-tight text-parchment-hi">{title}</h3></div></div><div className="flip-face flip-back flex rounded-2xl border border-gold/50 bg-red-primary p-5"><p className="m-auto font-body leading-relaxed text-[#fff8e6]">{text}</p></div></div></article>)}
           </div>
         </div>
       </section>
@@ -211,8 +236,9 @@ export function MainLanding() {
             <p className="mt-5 max-w-xl font-body text-lg leading-relaxed text-bone-dim">В приложении карта помогает остановиться, заметить отклик и выбрать, куда посмотреть дальше. Попробуйте короткую демонстрацию.</p>
             {!firstDrawn && <Link href="/register" className="mt-7 inline-block rounded bg-red-primary px-6 py-3 font-technical text-xs uppercase tracking-widest text-[#fff8e6] hover:bg-red-primary-dark">Получить первую карту</Link>}
           </div>
-          <div className="flex justify-center">
-            {firstDrawn ? <button type="button" onClick={() => setCardStep("first")} className="group w-[min(64vw,280px)] text-center"><div className="relative aspect-[20/41] overflow-hidden rounded-xl border border-gold/50 bg-parchment shadow-2xl transition duration-300 group-hover:-translate-y-2"><Image src={firstCard.image} alt={`Карта ${firstCard.name}`} fill sizes="280px" className="object-cover" priority /></div><span className="mt-4 block font-display text-2xl text-parchment-hi">{firstCard.name}</span><span className="mt-2 block font-technical text-xs uppercase tracking-widest text-red-primary">Нажмите, чтобы открыть</span></button> : <div className="relative aspect-[20/41] w-[min(64vw,280px)] overflow-hidden rounded-xl border border-gold/40 shadow-xl"><Image src="/cards/_back.png" alt="Рубашка карты" fill sizes="280px" className="object-cover" /></div>}
+          <div className="grid w-full max-w-[520px] grid-cols-2 items-end gap-4">
+            {firstDrawn ? <button type="button" onClick={() => setCardStep("first")} className="group w-full text-center"><div className="relative aspect-[20/41] overflow-hidden rounded-xl border border-gold/50 bg-parchment shadow-2xl transition duration-300 group-hover:-translate-y-2"><Image src={firstCard.image} alt={`Карта ${firstCard.name}`} fill sizes="260px" className="object-cover" priority /></div><span className="mt-4 block font-display text-xl text-parchment-hi">{firstCard.name}</span><span className="mt-2 block font-technical text-xs uppercase tracking-widest text-red-primary">Нажмите, чтобы открыть</span></button> : <div className="relative aspect-[20/41] overflow-hidden rounded-xl border border-gold/40 shadow-xl"><Image src="/cards/_back.png" alt="Рубашка карты" fill sizes="260px" className="object-cover" /></div>}
+            <div className="text-center"><div className="relative aspect-[20/41] overflow-hidden rounded-xl border border-gold/50 bg-parchment shadow-2xl"><Image src={secondCard.image} alt={`Карта ${secondCard.name}`} fill sizes="260px" className="object-cover" /></div><span className="mt-4 block font-display text-xl text-parchment-hi">{secondCard.name}</span></div>
           </div>
         </div>
       </section>
@@ -241,20 +267,20 @@ export function MainLanding() {
         <div className="mx-auto max-w-6xl">
           <p className="font-technical text-xs uppercase tracking-widest text-gold">Для кого</p>
           <h2 className="mt-3 font-display text-4xl text-parchment-hi md:text-5xl">Для тех, кто много держит на себе.</h2>
-          <p className="mt-4 max-w-2xl font-body text-lg leading-relaxed text-bone-dim">Наведите на карточку, чтобы увидеть, в чём может быть польза именно для вашей роли.</p>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{audiences.map(([title, text, image]) => <article key={title} tabIndex={0} className="audience-flip min-w-0 h-[350px] rounded-2xl outline-none"><div className="audience-flip-inner"><div className="audience-face overflow-hidden rounded-2xl border border-void-border bg-void-elevated"><div className="relative h-full"><Image src={image} alt={title} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw" className="object-cover" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-void via-void/85 to-transparent px-5 pb-5 pt-20"><h3 className="break-words font-display text-[clamp(1rem,1.25vw,1.25rem)] leading-tight text-parchment-hi">{title}</h3><p className="mt-2 font-technical text-[10px] uppercase tracking-[0.16em] text-gold">Наведи на карточку</p></div></div></div><div className="audience-face audience-back flex rounded-2xl border border-gold/50 bg-red-primary p-5"><div className="m-auto min-w-0"><h3 className="break-words font-display text-lg leading-tight text-[#fff8e6]">{title}</h3><p className="mt-4 font-body text-sm leading-relaxed text-[#fff8e6]">{text}</p></div></div></div></article>)}</div>
+          <p className="mt-4 max-w-2xl font-body text-lg leading-relaxed text-bone-dim">Нажмите на карточку, чтобы увидеть, в чём может быть польза именно для вашей роли.</p>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{audiences.map(([title, text, image], index) => <article key={title} tabIndex={0} role="button" aria-pressed={flippedAudience === index} onClick={() => setFlippedAudience(flippedAudience === index ? null : index)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setFlippedAudience(flippedAudience === index ? null : index); } }} className={`audience-flip min-w-0 h-[350px] cursor-pointer rounded-2xl outline-none ${flippedAudience === index ? "is-flipped" : ""}`}><div className="audience-flip-inner"><div className="audience-face overflow-hidden rounded-2xl border border-void-border bg-void-elevated"><div className="relative h-full"><Image src={image} alt={title} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw" className="object-cover" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-void via-void/85 to-transparent px-5 pb-5 pt-20"><h3 className="break-words font-display text-[clamp(1rem,1.25vw,1.25rem)] leading-tight text-parchment-hi">{title}</h3><p className="mt-2 font-technical text-[10px] uppercase tracking-[0.16em] text-gold">Нажми на карточку</p></div></div></div><div className="audience-face audience-back flex rounded-2xl border border-gold/50 bg-red-primary p-5"><div className="m-auto min-w-0"><h3 className="break-words font-display text-lg leading-tight text-[#fff8e6]">{title}</h3><p className="mt-4 font-body text-sm leading-relaxed text-[#fff8e6]">{text}</p></div></div></div></article>)}</div>
         </div>
       </section>
 
       <section className="landing-ink px-5 py-16 md:px-8 md:py-24">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_.9fr] lg:items-center">
           <div><p className="font-technical text-xs uppercase tracking-widest text-gold">Для команд и HR</p><h2 className="mt-3 font-display text-4xl leading-tight text-parchment-hi md:text-5xl">Профилактика выгорания — это не «плюшка». Это работа с устойчивостью команды.</h2><p className="mt-5 font-body text-lg leading-relaxed text-bone-dim">Игровой формат помогает заметить напряжение до того, как оно станет увольнением, говорить о сложностях без обвинений и превращать разговор в конкретные договорённости. Это поддерживает вовлечённость, эффективность и удержание сильных людей.</p><Link href="/partners" className="mt-7 inline-block rounded bg-red-primary px-6 py-3 font-technical text-xs uppercase tracking-widest text-[#fff8e6] hover:bg-red-primary-dark">Обсудить формат для команды</Link></div>
-          <div className="overflow-hidden rounded-2xl border border-gold/45 bg-void-elevated"><div className="relative aspect-[16/10]"><Image src="/landing/hr-team-workshop.png" alt="Команда на фасилитационной встрече с архетипическими картами" fill sizes="(max-width: 1024px) 100vw, 42vw" className="object-cover" /></div><aside className="p-6 md:p-8"><p className="font-display text-4xl text-gold">от 100 000 ₽</p><h3 className="mt-3 font-display text-2xl text-parchment-hi">может стоить один новый найм</h3><p className="mt-4 font-body leading-relaxed text-bone-dim">По международному бенчмарку SHRM за 2025 год средняя стоимость найма неисполнительской позиции составила $5 475 — это существенно выше 100 000 ₽. Удержание и ранняя профилактика напряжения стоят того, чтобы их считать.</p><p className="mt-5 font-technical text-[10px] leading-relaxed tracking-wide text-bone-muted">Источник: SHRM, 2025 Recruiting Benchmarking. shrm.org/about/press-room/shrm-releases-2025-benchmarking-reports--how-does-your-organizat</p></aside></div>
+          <div className="overflow-hidden rounded-2xl border border-gold/45 bg-void-elevated"><div className="relative aspect-[16/10]"><Image src="/landing/hr-team-workshop.png" alt="Команда на фасилитационной встрече с архетипическими картами" fill sizes="(max-width: 1024px) 100vw, 42vw" className="object-cover" /></div><aside className="p-6 md:p-8"><p className="font-display text-4xl text-gold">от 100 000 ₽</p><h3 className="mt-3 font-display text-2xl text-parchment-hi">может стоить один новый найм</h3><p className="mt-4 font-body leading-relaxed text-bone-dim">По международному бенчмарку SHRM средняя стоимость найма неисполнительской позиции — около 500 000 ₽ в пересчёте. Удержание и ранняя профилактика напряжения стоят того, чтобы их считать.</p><p className="mt-5 font-technical text-[10px] leading-relaxed tracking-wide text-bone-muted">Источник: SHRM, 2025 Recruiting Benchmarking. shrm.org/about/press-room/shrm-releases-2025-benchmarking-reports--how-does-your-organizat</p></aside></div>
         </div>
       </section>
 
       <section className="landing-paper px-5 py-16 md:px-8 md:py-24">
-        <div className="mx-auto max-w-6xl"><p className="font-technical text-xs uppercase tracking-widest text-gold">Команда</p><h2 className="mt-3 font-display text-4xl text-parchment-hi md:text-5xl">Кто создаёт «Ясен Хрен».</h2><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{team.map(([name, role, image]) => <article key={name} className="overflow-hidden rounded-2xl border border-void-border bg-void-elevated"><div className="relative aspect-[4/5] bg-parchment"><Image src={image} alt={name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover object-top" /></div><div className="p-6"><h3 className="font-display text-xl text-parchment-hi">{name}</h3><p className="mt-2 font-body text-sm leading-relaxed text-bone-dim">{role}</p></div></article>)}</div></div>
+        <div className="mx-auto max-w-6xl"><p className="font-technical text-xs uppercase tracking-widest text-gold">Команда</p><h2 className="mt-3 font-display text-4xl text-parchment-hi md:text-5xl">Кто создаёт «Ясен Хрен».</h2><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{team.map((member) => <article key={member.name} className="overflow-hidden rounded-2xl border border-void-border bg-void-elevated"><div className="relative aspect-[4/5] bg-parchment"><Image src={member.image} alt={member.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover object-top" /></div><div className="p-6"><h3 className="font-display text-xl text-parchment-hi">{member.name}</h3><p className="mt-2 font-body text-sm leading-relaxed text-gold">{member.role}</p><ul className="mt-5 space-y-2 border-t border-void-border pt-4">{member.credentials.map((credential) => <li key={credential} className="font-body text-sm leading-relaxed text-bone-dim before:mr-2 before:text-gold before:content-['•']">{credential}</li>)}</ul></div></article>)}</div></div>
       </section>
 
       <section id="tariffs" className="landing-paper scroll-mt-6 px-5 py-16 md:px-8 md:py-24">
@@ -263,7 +289,7 @@ export function MainLanding() {
 
       <section id="faq" className="landing-ink scroll-mt-6 px-5 py-16 md:px-8 md:py-24"><div className="mx-auto max-w-4xl"><p className="font-technical text-xs uppercase tracking-widest text-gold">FAQ</p><h2 className="mt-3 font-display text-4xl text-parchment-hi md:text-5xl">Коротко о важном</h2><div className="mt-8 divide-y divide-void-border rounded-2xl border border-void-border bg-void-elevated px-6">{faq.map(([question, answer]) => <details key={question} className="group py-5"><summary className="cursor-pointer list-none pr-8 font-display text-xl text-parchment-hi"><span>{question}</span><span className="float-right text-gold transition group-open:rotate-45">+</span></summary><p className="pt-3 font-body leading-relaxed text-bone-dim">{answer}</p></details>)}</div></div></section>
 
-      <section className="landing-paper px-5 py-20 text-center md:px-8 md:py-28"><div className="mx-auto max-w-3xl"><p className="font-technical text-xs uppercase tracking-widest text-gold">Немного человеческого</p><h2 className="mt-3 font-display text-4xl text-parchment-hi md:text-5xl">С юмором — к языку. Серьёзно — к человеку.</h2><p className="mt-5 font-body text-lg leading-relaxed text-bone-dim">Не нужно срочно становиться лучшей версией себя. Иногда достаточно честно заметить: «Ну вот, теперь хотя бы ясен хрен, что со мной происходит».</p><Link href="/register" className="mt-8 inline-block rounded bg-red-primary px-7 py-3 font-technical text-xs uppercase tracking-widest text-[#fff8e6] hover:bg-red-primary-dark">Получить карту</Link></div></section>
+      <section className="landing-paper px-5 py-20 text-center md:px-8 md:py-28"><div className="mx-auto max-w-3xl"><p className="font-technical text-xs uppercase tracking-widest text-gold">Немного человеческого</p><h2 className="mt-3 font-display text-4xl text-parchment-hi md:text-5xl">С юмором — к крепкому словцу. Серьёзно — к человеку.</h2><p className="mt-5 font-body text-lg leading-relaxed text-bone-dim">Не нужно срочно становиться лучшей версией себя. Иногда достаточно честно заметить: «Ну вот, теперь хотя бы ясен хрен, что со мной происходит».</p><Link href="/register" className="mt-8 inline-block rounded bg-red-primary px-7 py-3 font-technical text-xs uppercase tracking-widest text-[#fff8e6] hover:bg-red-primary-dark">Получить карту</Link></div></section>
 
       {cardStep && <Modal onClose={() => setCardStep(null)}>{cardStep === "first" && <div className="text-center"><div className="relative mx-auto aspect-[20/41] w-[min(58vw,240px)] overflow-hidden rounded-xl shadow-xl"><Image src={firstCard.image} alt={firstCard.name} fill sizes="240px" className="object-cover" /></div><p className="mt-5 font-technical text-xs uppercase tracking-widest text-gold">Первая карта</p><h2 className="mt-2 font-display text-3xl text-parchment-hi">{firstCard.name}</h2><p className="mt-4 text-left font-body leading-relaxed text-bone-dim">{firstCard.short}</p><p className="mt-3 text-left font-body leading-relaxed text-bone">{firstCard.detail}</p><button type="button" onClick={() => setCardStep("sphere")} className="mt-6 w-full rounded bg-red-primary py-3 font-technical text-xs uppercase tracking-widest text-[#fff8e6] hover:bg-red-primary-dark">Получить вторую карту</button></div>}{cardStep === "sphere" && <div><p className="font-technical text-xs uppercase tracking-widest text-gold">Вторая карта</p><h2 className="mt-2 font-display text-3xl text-parchment-hi">Выберите сферу жизни</h2><p className="mt-3 font-body leading-relaxed text-bone-dim">Карта покажет ещё один ракурс вашей ситуации.</p><div className="mt-6 grid gap-3 sm:grid-cols-2">{spheres.map(([value, label]) => <button key={value} type="button" onClick={() => setSelectedSphere(value)} className={`rounded-xl border p-4 text-left font-body transition ${selectedSphere === value ? "border-gold bg-gold/10 text-parchment-hi" : "border-void-border text-bone-dim hover:border-gold/60"}`}>{label}</button>)}</div><button type="button" onClick={() => setCardStep("second")} className="mt-6 w-full rounded bg-red-primary py-3 font-technical text-xs uppercase tracking-widest text-[#fff8e6] hover:bg-red-primary-dark">Открыть вторую карту</button></div>}{cardStep === "second" && <div className="text-center"><div className="relative mx-auto aspect-[20/41] w-[min(58vw,240px)] overflow-hidden rounded-xl shadow-xl"><Image src={secondCard.image} alt={secondCard.name} fill sizes="240px" className="object-cover" /></div><p className="mt-5 font-technical text-xs uppercase tracking-widest text-gold">Вторая карта</p><h2 className="mt-2 font-display text-3xl text-parchment-hi">{secondCard.name}</h2><p className="mt-4 text-left font-body leading-relaxed text-bone-dim">{secondCard.short}</p><p className="mt-3 text-left font-body leading-relaxed text-bone">{secondCard.detail}</p><div className="mt-6 rounded-xl border border-gold/40 bg-gold/5 p-4 text-left"><p className="font-body text-sm leading-relaxed text-bone">Хотите полный разбор, практики, «Зеркало» и карты в удобном формате? Зарегистрируйтесь и продолжите путь в приложении.</p><Link href="/register" className="mt-4 inline-block rounded bg-red-primary px-5 py-3 font-technical text-xs uppercase tracking-widest text-[#fff8e6] hover:bg-red-primary-dark">Зарегистрироваться</Link></div></div>}</Modal>}
 

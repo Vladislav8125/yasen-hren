@@ -247,8 +247,10 @@ body {
 
 .flip-card:hover .flip-card-inner,
 .flip-card:focus .flip-card-inner,
+.flip-card.is-flipped .flip-card-inner,
 .audience-flip:hover .audience-flip-inner,
-.audience-flip:focus .audience-flip-inner {
+.audience-flip:focus .audience-flip-inner,
+.audience-flip.is-flipped .audience-flip-inner {
   transform: rotateY(180deg);
 }
 
