@@ -1,51 +1,55 @@
 import { prisma } from "@/lib/prisma";
-import { moderateTerm } from "./actions";
+import { addModeratorComment, updateFeedbackStatus } from "./actions";
 
-export default async function AdminGlossaryPage() {
-  const pending = await prisma.glossaryTerm.findMany({
-    where: { status: "pending" },
-    orderBy: { createdAt: "asc" },
-    include: { submittedBy: true },
+const STATUS_LABEL = {
+  OPEN: "Новое",
+  PLANNED: "Запланировано",
+  IN_PROGRESS: "В работе",
+  COMPLETED: "Готово",
+  CLOSED: "Закрыто",
+} as const;
+
+export default async function AdminFeedbackPage() {
+  const posts = await prisma.feedbackPost.findMany({
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    include: {
+      author: { select: { name: true, email: true } },
+      comments: { orderBy: { createdAt: "asc" }, include: { author: { select: { name: true, role: true } } } },
+    },
   });
 
   return (
-    <main className="p-6">
-      <h1 className="font-display text-2xl text-parchment-hi mb-6">Глоссарий — на модерации</h1>
+    <main className="mx-auto w-full max-w-5xl p-6">
+      <p className="font-technical text-xs uppercase tracking-widest text-gold">Продуктовая очередь</p>
+      <h1 className="mt-2 font-display text-3xl text-parchment-hi">Обратная связь</h1>
+      <p className="mt-2 font-body text-bone-dim">Меняйте статусы и отвечайте пользователям прямо в обсуждении.</p>
 
-      {pending.length === 0 ? (
-        <p className="font-body text-bone-dim">Очередь пуста.</p>
-      ) : (
-        <div className="flex flex-col gap-4 max-w-2xl">
-          {pending.map((t) => (
-            <div key={t.id} className="rounded-lg border border-void-border bg-void-elevated p-4">
-              <p className="font-display text-xl text-gold-bright">{t.term}</p>
-              <p className="font-body text-sm text-bone mt-1 mb-2">{t.definition}</p>
-              <p className="font-technical text-xs text-bone-dim mb-3">
-                Предложил: {t.submittedBy.name} · {t.createdAt.toLocaleDateString("ru-RU")}
-              </p>
-              <form action={moderateTerm} className="flex gap-2">
-                <input type="hidden" name="termId" value={t.id} />
-                <button
-                  type="submit"
-                  name="decision"
-                  value="approved"
-                  className="rounded bg-red-primary px-3 py-1.5 font-technical text-xs uppercase text-parchment hover:bg-red-primary-dark"
-                >
-                  Одобрить
-                </button>
-                <button
-                  type="submit"
-                  name="decision"
-                  value="rejected"
-                  className="rounded border border-void-border px-3 py-1.5 font-technical text-xs uppercase text-bone-dim hover:text-red-warning"
-                >
-                  Отклонить
-                </button>
+      <div className="mt-8 space-y-5">
+        {posts.length === 0 ? <p className="font-body text-bone-dim">Обращений пока нет.</p> : posts.map((post) => (
+          <article key={post.id} className="rounded-xl border border-void-border bg-void-elevated p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="font-display text-2xl text-parchment-hi">{post.title}</h2>
+                <p className="mt-1 font-technical text-[10px] uppercase tracking-widest text-bone-dim">{post.author.name} · {post.author.email} · {post.createdAt.toLocaleDateString("ru-RU")}</p>
+              </div>
+              <form action={updateFeedbackStatus} className="flex items-center gap-2">
+                <input type="hidden" name="postId" value={post.id} />
+                <select name="status" defaultValue={post.status} className="rounded border border-void-border bg-void px-3 py-2 font-technical text-xs uppercase tracking-widest text-bone">
+                  {Object.entries(STATUS_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+                <button className="rounded border border-gold px-3 py-2 font-technical text-xs uppercase tracking-widest text-gold hover:bg-gold/10">Сохранить</button>
               </form>
             </div>
-          ))}
-        </div>
-      )}
+            <p className="mt-4 whitespace-pre-wrap font-body leading-relaxed text-bone">{post.body}</p>
+
+            <div className="mt-5 border-t border-void-border pt-4">
+              <p className="font-technical text-xs uppercase tracking-widest text-gold">Обсуждение</p>
+              {post.comments.length > 0 && <div className="mt-3 space-y-3">{post.comments.map((comment) => <div key={comment.id} className="rounded-lg bg-void p-3"><p className="font-technical text-[10px] uppercase tracking-widest text-bone-dim">{comment.author.name} · {comment.author.role}</p><p className="mt-1 whitespace-pre-wrap font-body text-sm text-bone">{comment.body}</p></div>)}</div>}
+              <form action={addModeratorComment} className="mt-4 grid gap-3"><input type="hidden" name="postId" value={post.id} /><textarea name="body" required maxLength={3000} rows={3} placeholder="Ответ команды" className="resize-y rounded border border-void-border bg-void px-3 py-2 font-body text-bone" /><button className="justify-self-start rounded bg-red-primary px-4 py-2.5 font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark">Ответить</button></form>
+            </div>
+          </article>
+        ))}
+      </div>
     </main>
   );
 }

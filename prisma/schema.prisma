@@ -59,6 +59,14 @@ enum UserRole {
   ADMIN
 }
 
+enum FeedbackStatus {
+  OPEN
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
 enum ConsultationStatus {
   REQUESTED // подписчик запросил слот
   SCHEDULED // основатель назначил время, ссылка на звонок известна
@@ -143,6 +151,8 @@ model User {
   shopOrders          ShopOrder[]
   glossarySubmissions GlossaryTerm[] @relation("submittedBy")
   glossaryModerations GlossaryTerm[] @relation("moderatedBy")
+  feedbackPosts       FeedbackPost[]    @relation("feedbackAuthor")
+  feedbackComments    FeedbackComment[] @relation("feedbackCommentAuthor")
 
   // Реферальная программа — будущая фаза, НЕ в MVP (архитектурное ТЗ, раздел 11).
   // Поля-задел, закомментированы до запуска фазы:
@@ -383,6 +393,37 @@ model GlossaryTerm {
 
   submittedBy User  @relation("submittedBy", fields: [submittedById], references: [id])
   moderatedBy User? @relation("moderatedBy", fields: [moderatedById], references: [id])
+}
+
+// Обратная связь — публичная для участников очередь продуктовых вопросов.
+// Старый GlossaryTerm оставлен для сохранения уже внесённых материалов.
+model FeedbackPost {
+  id        String         @id @default(cuid())
+  title     String
+  body      String
+  status    FeedbackStatus @default(OPEN)
+  authorId  String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  author   User              @relation("feedbackAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  comments FeedbackComment[]
+
+  @@index([status, updatedAt])
+  @@index([authorId, createdAt])
+}
+
+model FeedbackComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  post   FeedbackPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User         @relation("feedbackCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
 }
 
 // для RAG-ассистента — эмбеддинги источников (методология, статьи, глоссарий)

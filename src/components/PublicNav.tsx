@@ -9,13 +9,13 @@ import { usePathname } from "next/navigation";
 
 export function PublicNav({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname();
-  const showGlossary = pathname !== "/login";
+  const showFeedback = pathname !== "/login";
 
   return (
     <nav className="flex items-center gap-4 font-technical text-xs uppercase tracking-widest">
-      {showGlossary && (
+      {showFeedback && (
         <Link href="/glossary" className="text-bone hover:text-gold-bright">
-          Глоссарий
+          Обратная связь
         </Link>
       )}
       <Link href="/partners" className="text-bone hover:text-gold-bright">

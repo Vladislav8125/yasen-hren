@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+const STATUSES = ["OPEN", "PLANNED", "IN_PROGRESS", "COMPLETED", "CLOSED"] as const;
+
 async function requireModerator() {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -13,17 +15,27 @@ async function requireModerator() {
   return user;
 }
 
-export async function moderateTerm(formData: FormData) {
+export async function updateFeedbackStatus(formData: FormData) {
+  await requireModerator();
+  const postId = (formData.get("postId") as string | null)?.trim();
+  const status = formData.get("status") as (typeof STATUSES)[number] | null;
+  if (!postId || !status || !STATUSES.includes(status)) throw new Error("Некорректный статус обращения.");
+
+  await prisma.feedbackPost.update({ where: { id: postId }, data: { status } });
+  revalidatePath("/admin/glossary");
+  revalidatePath("/glossary");
+}
+
+export async function addModeratorComment(formData: FormData) {
   const moderator = await requireModerator();
+  const postId = (formData.get("postId") as string | null)?.trim();
+  const body = (formData.get("body") as string | null)?.trim();
+  if (!postId || !body || body.length > 3000) throw new Error("Проверьте текст комментария.");
 
-  const termId = formData.get("termId") as string;
-  const decision = formData.get("decision") as "approved" | "rejected";
-
-  await prisma.glossaryTerm.update({
-    where: { id: termId },
-    data: { status: decision, moderatedById: moderator.id },
-  });
-
+  await prisma.$transaction([
+    prisma.feedbackComment.create({ data: { postId, body, authorId: moderator.id } }),
+    prisma.feedbackPost.update({ where: { id: postId }, data: { updatedAt: new Date() } }),
+  ]);
   revalidatePath("/admin/glossary");
   revalidatePath("/glossary");
 }

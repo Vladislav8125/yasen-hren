@@ -81,14 +81,28 @@ export default async function ProfilePage() {
           )}
           <div className="flex justify-between border-b border-void-border pb-3">
             <dt className="text-bone-dim">Telegram</dt>
-            <dd className={user.telegramChatId ? "text-green-600" : "text-bone-dim"}>
-              {user.telegramChatId ? "привязан ✓" : "не привязан"}
+            <dd>
+              {user.telegramChatId ? (
+                <span className="text-green-600">Привязан ✓</span>
+              ) : (
+                <a href={telegramLinkUrl} target="_blank" rel="noopener noreferrer" className="rounded border border-gold px-3 py-1.5 font-technical text-[10px] uppercase tracking-widest text-gold hover:bg-gold/10 hover:text-gold-bright">
+                  Привязать
+                </a>
+              )}
             </dd>
           </div>
           <div className="flex justify-between border-b border-void-border pb-3">
             <dt className="text-bone-dim">VK</dt>
-            <dd className={user.vkUserId ? "text-green-600" : "text-bone-dim"}>
-              {user.vkUserId ? "привязан ✓" : "не привязан"}
+            <dd>
+              {user.vkUserId ? (
+                <span className="text-green-600">Привязан ✓</span>
+              ) : vkLinkUrl ? (
+                <a href={vkLinkUrl} target="_blank" rel="noopener noreferrer" className="rounded border border-gold px-3 py-1.5 font-technical text-[10px] uppercase tracking-widest text-gold hover:bg-gold/10 hover:text-gold-bright">
+                  Привязать
+                </a>
+              ) : (
+                <span className="text-bone-dim">Бот настраивается</span>
+              )}
             </dd>
           </div>
           <div className="flex justify-between">
@@ -111,26 +125,6 @@ export default async function ProfilePage() {
             </button>
           </form>
         ) : null}
-
-        {!user.telegramChatId && (
-          <a
-            href={telegramLinkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
-          >
-            Привязать Telegram
-          </a>
-        )}
-
-        {!user.vkUserId && vkLinkUrl && (
-          <Link
-            href="/profile/vk-link"
-            className="mt-3 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
-          >
-            Привязать VK
-          </Link>
-        )}
 
         <Link
           href="/tariffs"

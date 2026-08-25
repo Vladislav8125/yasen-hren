@@ -17,10 +17,10 @@ export default async function MirrorPage() {
   if (!canUserAccess(tariff, "MIRROR")) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-        <p className="font-technical text-xs uppercase tracking-widest text-gold">Зеркало</p>
+        <p className="font-technical text-xs uppercase tracking-widest text-gold">Мой путь</p>
         <h1 className="font-display text-3xl text-parchment-hi">Доступно со Standard</h1>
         <p className="font-body text-bone-dim max-w-sm">
-          Разовая карта — расходник. «Зеркало» копит статистику твоих архетипов месяц за месяцем.
+          Разовая карта — расходник. «Мой путь» копит историю твоих архетипов месяц за месяцем.
         </p>
         <Link
           href="/tariffs"
@@ -72,7 +72,7 @@ export default async function MirrorPage() {
     <div className="flex flex-1 flex-col items-center gap-10 p-6">
       <div className="text-center">
         <p className="font-technical text-xs uppercase tracking-widest text-gold">
-          Зеркало · последние {data.windowDays} дней
+          Мой путь · последние {data.windowDays} дней
         </p>
         <h1 className="font-display text-3xl text-parchment-hi">Твои архетипы</h1>
       </div>

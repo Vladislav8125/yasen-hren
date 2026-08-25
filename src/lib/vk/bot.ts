@@ -19,7 +19,7 @@ const MENU_KEYBOARD = JSON.stringify({
       { action: { type: "text", label: "📖 Подробнее" }, color: "secondary" },
       { action: { type: "text", label: "➕ Вторая карта" }, color: "secondary" },
     ],
-    [{ action: { type: "text", label: "🪞 Зеркало" }, color: "secondary" }],
+    [{ action: { type: "text", label: "🪞 Мой путь" }, color: "secondary" }],
     [{ action: { type: "text", label: "💳 Тариф" }, color: "secondary" }],
     [{ action: { type: "text", label: "📅 Консультация" }, color: "secondary" }],
   ],
@@ -195,9 +195,9 @@ export async function handleVkMessage(vkUserId: string, text: string) {
     return;
   }
 
-  if (trimmed.includes("Зеркало")) {
+  if (trimmed.includes("Мой путь")) {
     if (!canUserAccess(tariff, "MIRROR")) {
-      await vkSendMessage(vkUserId, `Зеркало доступно со Standard. Оформить: ${appUrl()}/tariffs`);
+      await vkSendMessage(vkUserId, `«Мой путь» доступен со Standard. Оформить: ${appUrl()}/tariffs`);
       return;
     }
     const data = await getMirrorData(user.id);

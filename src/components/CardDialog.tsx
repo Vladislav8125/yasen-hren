@@ -87,14 +87,11 @@ export function CardDialog({
           {!revealed && archetype.extendedDescription && (
             tariff === "FREE" ? (
               <div className="flex flex-col gap-1.5 rounded-lg border border-gold/40 bg-gold/5 p-4 text-center">
-                <p className="font-body text-sm text-bone">
-                  Развёрнутое описание и практика доступны на платном тарифе
-                </p>
                 <Link
                   href="/tariffs"
                   className="rounded-lg bg-gold-bright px-4 py-2.5 font-technical text-xs font-semibold uppercase tracking-wider text-parchment-hi hover:bg-gold transition-colors"
                 >
-                  Смотреть тарифы
+                  Разблокировать подробный разбор
                 </Link>
               </div>
             ) : (

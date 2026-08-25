@@ -5,30 +5,37 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-// Глоссарий доступен на всех тарифах без ограничений (решение из брифа —
-// открытое пространство сообщества). Предложить термин может любой
-// залогиненный пользователь; ADMIN добавляет без модерации (решение из
-// дизайн-ТЗ), MODERATOR/USER — уходит в очередь на одобрение.
-export async function submitTerm(formData: FormData) {
+async function requireUser() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  return session.user;
+}
 
-  const term = (formData.get("term") as string)?.trim();
-  const definition = (formData.get("definition") as string)?.trim();
-  if (!term || !definition) return;
+function textValue(formData: FormData, name: string, maxLength: number) {
+  const value = (formData.get(name) as string | null)?.trim() ?? "";
+  if (!value || value.length > maxLength) throw new Error("Проверьте заполнение полей обращения.");
+  return value;
+}
 
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });
-  const autoApproved = user.role === "ADMIN";
+export async function submitFeedback(formData: FormData) {
+  const user = await requireUser();
+  const title = textValue(formData, "title", 140);
+  const body = textValue(formData, "body", 4000);
 
-  await prisma.glossaryTerm.create({
-    data: {
-      term,
-      definition,
-      submittedById: user.id,
-      status: autoApproved ? "approved" : "pending",
-      moderatedById: autoApproved ? user.id : null,
-    },
-  });
-
+  await prisma.feedbackPost.create({ data: { title, body, authorId: user.id } });
   revalidatePath("/glossary");
+  revalidatePath("/admin/glossary");
+}
+
+export async function addFeedbackComment(formData: FormData) {
+  const user = await requireUser();
+  const postId = textValue(formData, "postId", 64);
+  const body = textValue(formData, "body", 3000);
+
+  await prisma.$transaction([
+    prisma.feedbackComment.create({ data: { postId, body, authorId: user.id } }),
+    prisma.feedbackPost.update({ where: { id: postId }, data: { updatedAt: new Date() } }),
+  ]);
+  revalidatePath("/glossary");
+  revalidatePath("/admin/glossary");
 }

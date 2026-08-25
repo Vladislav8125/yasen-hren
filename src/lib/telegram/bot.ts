@@ -17,7 +17,7 @@ const MENU = new Keyboard()
   .text("📖 Подробнее")
   .text("➕ Вторая карта")
   .row()
-  .text("🪞 Зеркало")
+  .text("🪞 Мой путь")
   .text("💳 Тариф")
   .row()
   .text("📅 Консультация")
@@ -188,7 +188,7 @@ export function createBot(token: string) {
     await ctx.reply("Выбери действие:", { reply_markup: MENU });
   });
 
-  bot.hears("🪞 Зеркало", async (ctx) => {
+  bot.hears("🪞 Мой путь", async (ctx) => {
     const user = await findLinkedUser(ctx.chat.id.toString());
     if (!user) {
       await ctx.reply("Аккаунт ещё не привязан — сделай это в личном кабинете на сайте.");
@@ -196,7 +196,7 @@ export function createBot(token: string) {
     }
     const tariff = effectiveTariff(user);
     if (!canUserAccess(tariff, "MIRROR")) {
-      await ctx.reply(`Зеркало доступно со Standard. Оформить: ${appUrl()}/tariffs`);
+      await ctx.reply(`«Мой путь» доступен со Standard. Оформить: ${appUrl()}/tariffs`);
       return;
     }
 

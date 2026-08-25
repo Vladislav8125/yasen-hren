@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateDailyDraw } from "@/lib/cardEngine";
@@ -36,7 +37,12 @@ export default async function TodayPage() {
           tariff={tariff}
         />
       </div>
-      <ShareAppLink />
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
+        <ShareAppLink />
+        <Link href="/knowledge/how-to-use-a-card" className="font-technical text-xs uppercase tracking-widest text-gold underline underline-offset-4 hover:text-gold-bright">
+          Инструкция
+        </Link>
+      </div>
     </div>
   );
 }

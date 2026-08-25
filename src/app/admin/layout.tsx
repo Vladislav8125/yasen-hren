@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           Пользователи
         </Link>
         <Link href="/admin/glossary" className="text-bone hover:text-gold-bright">
-          Глоссарий
+          Обратная связь
         </Link>
         <Link href="/admin/consultations" className="text-bone hover:text-gold-bright">
           Консультации
