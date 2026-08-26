@@ -39,7 +39,7 @@ export default async function TodayPage() {
       </div>
       <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
         <ShareAppLink />
-        <Link href="/knowledge/how-to-use-a-card" className="font-technical text-xs uppercase tracking-widest text-gold underline underline-offset-4 hover:text-gold-bright">
+        <Link href="/knowledge/source-yasen-hren-instruktsiya-uchastnik" className="font-technical text-xs uppercase tracking-widest text-gold underline underline-offset-4 hover:text-gold-bright">
           Инструкция
         </Link>
       </div>
