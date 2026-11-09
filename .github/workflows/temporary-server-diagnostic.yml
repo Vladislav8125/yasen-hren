@@ -23,7 +23,10 @@ jobs:
           ENCODED_URL=$(ssh -T root@188.225.25.68 'bash --noprofile --norc -c '\''cd /opt/yasen-hren-release && set -a && . ./.env && printf "\nURL64:" && printf "%s" "$DATABASE_URL" | base64 -w0'\''' | sed -n 's/^URL64://p' | tail -n1)
           DATABASE_URL=$(printf "%s" "$ENCODED_URL" | base64 --decode)
           echo "::add-mask::$DATABASE_URL"
-          pg_dump "$DATABASE_URL" --format=custom --file=database-before-platforms.dump
+          ssh -fNT -o ExitOnForwardFailure=yes -L 54329:192.168.0.4:5432 root@188.225.25.68
+          LOCAL_DATABASE_URL=$(DATABASE_URL="$DATABASE_URL" node -e 'const u=new URL(process.env.DATABASE_URL); u.hostname="127.0.0.1"; u.port="54329"; process.stdout.write(u.toString())')
+          echo "::add-mask::$LOCAL_DATABASE_URL"
+          pg_dump "$LOCAL_DATABASE_URL" --format=custom --file=database-before-platforms.dump
           test -s database-before-platforms.dump
           ssh root@188.225.25.68 'mkdir -p /root/yasen-backups/20261109-pre-platform-split'
           scp database-before-platforms.dump root@188.225.25.68:/root/yasen-backups/20261109-pre-platform-split/database-before-platforms.dump
