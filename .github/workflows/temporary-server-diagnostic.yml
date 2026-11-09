@@ -18,6 +18,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Upload release patch
         run: scp yasen-platform-release.tgz root@188.225.25.68:/root/yasen-platform-release.tgz
+      - name: Back up database outside the server
+        run: |
+          DATABASE_URL=$(ssh root@188.225.25.68 'cd /opt/yasen-hren-release && set -a && . ./.env && printf "%s" "$DATABASE_URL"')
+          echo "::add-mask::$DATABASE_URL"
+          pg_dump "$DATABASE_URL" --format=custom --file=database-before-platforms.dump
+          test -s database-before-platforms.dump
+          ssh root@188.225.25.68 'mkdir -p /root/yasen-backups/20261109-pre-platform-split'
+          scp database-before-platforms.dump root@188.225.25.68:/root/yasen-backups/20261109-pre-platform-split/database-before-platforms.dump
       - name: Build, migrate and switch release
         run: |
           ssh -o ConnectTimeout=30 root@188.225.25.68 '
@@ -27,7 +35,6 @@ jobs:
             backup=/root/yasen-backups/20261109-pre-platform-split
             test -d "$live"
             test -f "$live/.env"
-            test ! -e "$release"
             mkdir -p "$release" "$backup"
             rsync -a --exclude=.git --exclude=node_modules --exclude=.next "$live/" "$release/"
             tar -xzf /root/yasen-platform-release.tgz -C "$release"
@@ -35,14 +42,6 @@ jobs:
             npm ci --ignore-scripts
             npx prisma generate
             npx next build --webpack
-            if ! command -v pg_dump >/dev/null; then
-              apt-get update -qq
-              DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql-client
-            fi
-            set -a
-            . ./.env
-            set +a
-            pg_dump "$DATABASE_URL" --format=custom --file="$backup/database-before-platforms.dump"
             test -s "$backup/database-before-platforms.dump"
             cp /etc/systemd/system/yasen-hren.service.d/30-next-release.conf "$backup/30-next-release.before-platforms.conf"
             npx prisma migrate deploy
