@@ -1,0 +1,28 @@
+name: Temporary server diagnostic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.YASEN_TEMP_DEPLOY_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -T 20 -H 188.225.25.68 >> ~/.ssh/known_hosts
+      - name: Inspect release prerequisites
+        run: |
+          ssh -o ConnectTimeout=30 root@188.225.25.68 '
+            set -eu
+            echo "SSH_OK"
+            test -d /opt/yasen-hren-release && echo "LIVE_OK"
+            test -d /opt/yasen-hren-work-20261109 && echo "WORK_OK"
+            command -v pg_dump || true
+            systemctl list-units --type=service --all --no-legend | awk "/yasen|next/ {print \$1, \$4}"
+            find /root/yasen-backups/20261109-pre-platform-split -maxdepth 2 -type f -printf "%P\n" 2>/dev/null | sort
+          '
