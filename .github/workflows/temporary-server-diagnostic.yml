@@ -17,19 +17,20 @@ jobs:
           ssh-keyscan -T 20 -H 188.225.25.68 >> ~/.ssh/known_hosts
       - uses: actions/checkout@v4
       - name: Upload release patch
-        run: scp yasen-platform-release.tgz root@188.225.25.68:/root/yasen-platform-release.tgz
-      - name: Back up database outside the server
         run: |
-          ENCODED_URL=$(ssh -T root@188.225.25.68 'bash --noprofile --norc -c '\''cd /opt/yasen-hren-release && set -a && . ./.env && printf "\nURL64:" && printf "%s" "$DATABASE_URL" | base64 -w0'\''' | sed -n 's/^URL64://p' | tail -n1)
-          DATABASE_URL=$(printf "%s" "$ENCODED_URL" | base64 --decode)
-          echo "::add-mask::$DATABASE_URL"
-          ssh -fNT -o ExitOnForwardFailure=yes -L 54329:192.168.0.4:5432 root@188.225.25.68
-          LOCAL_DATABASE_URL=$(DATABASE_URL="$DATABASE_URL" node -e 'const u=new URL(process.env.DATABASE_URL); u.hostname="127.0.0.1"; u.port="54329"; process.stdout.write(u.toString())')
-          echo "::add-mask::$LOCAL_DATABASE_URL"
-          pg_dump "$LOCAL_DATABASE_URL" --format=custom --file=database-before-platforms.dump
-          test -s database-before-platforms.dump
-          ssh root@188.225.25.68 'mkdir -p /root/yasen-backups/20261109-pre-platform-split'
-          scp database-before-platforms.dump root@188.225.25.68:/root/yasen-backups/20261109-pre-platform-split/database-before-platforms.dump
+          scp yasen-platform-release.tgz root@188.225.25.68:/root/yasen-platform-release.tgz
+          scp scripts/temporary-database-backup.mjs root@188.225.25.68:/opt/yasen-hren-release/scripts/temporary-database-backup.mjs
+      - name: Back up database
+        run: |
+          ssh root@188.225.25.68 '
+            set -eu
+            backup=/root/yasen-backups/20261109-pre-platform-split
+            mkdir -p "$backup"
+            cd /opt/yasen-hren-release
+            node --env-file=.env scripts/temporary-database-backup.mjs "$backup/database-before-platforms.json"
+            gzip -f "$backup/database-before-platforms.json"
+            test -s "$backup/database-before-platforms.json.gz"
+          '
       - name: Build, migrate and switch release
         run: |
           ssh -o ConnectTimeout=30 root@188.225.25.68 '
@@ -46,7 +47,7 @@ jobs:
             npm ci --ignore-scripts
             npx prisma generate
             npx next build --webpack
-            test -s "$backup/database-before-platforms.dump"
+            test -s "$backup/database-before-platforms.json.gz"
             cp /etc/systemd/system/yasen-hren.service.d/30-next-release.conf "$backup/30-next-release.before-platforms.conf"
             npx prisma migrate deploy
             printf "[Service]\nWorkingDirectory=%s\nExecStart=\nExecStart=/usr/bin/npm start\n" "$release" > /etc/systemd/system/yasen-hren.service.d/30-next-release.conf
