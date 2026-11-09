@@ -1,0 +1,55 @@
+name: Temporary deck mobile update
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.YASEN_TEMP_DEPLOY_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -T 20 -H 188.225.25.68 >> ~/.ssh/known_hosts
+      - name: Upload update
+        run: scp yasen-deck-mobile.tgz root@188.225.25.68:/root/yasen-deck-mobile.tgz
+      - name: Build, switch, and check
+        run: |
+          ssh root@188.225.25.68 '
+            set -eu
+            current=/opt/yasen-hren-release-20261110-bot-ux
+            release=/opt/yasen-hren-release-20261110-checkout-mobile
+            backup=/root/yasen-backups/20261109-pre-platform-split/30-next-release.before-checkout-mobile.conf
+            test -d "$current"
+            test ! -e "$release"
+            mkdir -p "$release"
+            rsync -a --exclude=.git --exclude=node_modules --exclude=.next "$current/" "$release/"
+            tar -xzf /root/yasen-deck-mobile.tgz -C "$release"
+            rm -f "$release/src/app/(public)/deck/page.tsx"
+            rmdir "$release/src/app/(public)/deck" 2>/dev/null || true
+            cd "$release"
+            npm ci --ignore-scripts
+            npx prisma generate
+            npx next build --webpack
+            cp /etc/systemd/system/yasen-hren.service.d/30-next-release.conf "$backup"
+            printf "[Service]\nWorkingDirectory=%s\nExecStart=\nExecStart=/usr/bin/npm start\n" "$release" > /etc/systemd/system/yasen-hren.service.d/30-next-release.conf
+            systemctl daemon-reload
+            systemctl restart yasen-hren.service
+            sleep 8
+            landing_headers=$(curl -sSI --max-time 20 http://127.0.0.1:3000/landing)
+            deck_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 http://127.0.0.1:3000/deck)
+            if ! systemctl is-active --quiet yasen-hren.service || [ "$deck_status" != "200" ] || ! printf "%s" "$landing_headers" | grep -q "Location: https://yasenhren.ru/" || ! printf "%s" "$landing_headers" | grep -qi "Cache-Control:.*no-store"; then
+              cp "$backup" /etc/systemd/system/yasen-hren.service.d/30-next-release.conf
+              systemctl daemon-reload
+              systemctl restart yasen-hren.service
+              echo "Health check failed; application rolled back" >&2
+              exit 1
+            fi
+            rm -f /root/yasen-deck-mobile.tgz
+            echo DEPLOY_OK
+          '
