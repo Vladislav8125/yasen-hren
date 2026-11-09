@@ -20,7 +20,8 @@ jobs:
         run: scp yasen-platform-release.tgz root@188.225.25.68:/root/yasen-platform-release.tgz
       - name: Back up database outside the server
         run: |
-          DATABASE_URL=$(ssh root@188.225.25.68 'cd /opt/yasen-hren-release && set -a && . ./.env && printf "%s" "$DATABASE_URL"')
+          ENCODED_URL=$(ssh -T root@188.225.25.68 'bash --noprofile --norc -c '\''cd /opt/yasen-hren-release && set -a && . ./.env && printf "\nURL64:" && printf "%s" "$DATABASE_URL" | base64 -w0'\''' | sed -n 's/^URL64://p' | tail -n1)
+          DATABASE_URL=$(printf "%s" "$ENCODED_URL" | base64 --decode)
           echo "::add-mask::$DATABASE_URL"
           pg_dump "$DATABASE_URL" --format=custom --file=database-before-platforms.dump
           test -s database-before-platforms.dump
