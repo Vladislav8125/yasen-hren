@@ -22,8 +22,8 @@ jobs:
         run: |
           ssh root@188.225.25.68 '
             set -eu
-            current=/opt/yasen-hren-release-20261110-bot-ux
-            release=/opt/yasen-hren-release-20261110-checkout-mobile2
+            current=/opt/yasen-hren-release-20261110-checkout-mobile2
+            release=/opt/yasen-hren-release-20261110-checkout-ssr
             backup=/root/yasen-backups/20261109-pre-platform-split/30-next-release.before-checkout-mobile2.conf
             test -d "$current"
             test ! -e "$release"
