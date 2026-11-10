@@ -70,7 +70,7 @@ export default function RegisterPage() {
 
   return (
     <AuthCard title="Регистрация" subtitle="Ясен хрен, начнём">
-      {selectedTariff && <div className="mb-6 rounded border border-gold/40 bg-gold/5 p-4 font-body text-sm leading-relaxed text-bone">После регистрации откроется выбранный тариф: <b>{selectedTariff}</b>. Там можно сразу завершить оформление.</div>}
+      {selectedTariff && <div className="mb-6 rounded border border-gold/40 bg-gold/5 p-4 font-body text-sm leading-relaxed text-bone">После регистрации откроется выбранный тариф: <b>{selectedTariff === "PREMIUM" ? "Премиум" : selectedTariff === "STANDARD" ? "Стандарт" : "Бесплатный"}</b>. Там можно сразу завершить оформление.</div>}
       <div className="mb-6 space-y-2 rounded border border-gold/40 bg-gold/5 p-4 font-body text-sm leading-relaxed text-bone">
         <p>После регистрации вам регулярно будет доступна новая карта дня.</p>
         <p>Получать карты можно в веб-приложении, Telegram и ВКонтакте — выберите удобный канал.</p>

@@ -224,7 +224,7 @@ async function action(maxUserId: string, value: string) {
     if (data.totalDraws === 0) return void (await maxSendMessage(maxUserId, "Пока нет истории — загляни через несколько дней.", { buttons: menuButtons(maxUserId) }));
     return void (await sendText(maxUserId, [`За последние ${data.windowDays} дней:`, "", ...data.topArchetypes.map((item) => `• ${item.name} — ${item.count} раз(а)`)].join("\n"), menuButtons(maxUserId)));
   }
-  if (value === "tariff") return void (await maxSendMessage(maxUserId, `Твой тариф: ${tariff}\n\nВыбери тариф — откроется Robokassa. После подтверждения оплаты доступ включится автоматически.`, { buttons: tariffPaymentKeyboard(user.id) }));
+  if (value === "tariff") return void (await maxSendMessage(maxUserId, `Твой тариф: ${tariff === "PREMIUM" ? "Премиум" : tariff === "STANDARD" ? "Стандарт" : "Бесплатный"}\n\nВыбери тариф — откроется страница оплаты. После подтверждения доступ включится автоматически.`, { buttons: tariffPaymentKeyboard(user.id) }));
   if (value === "deck") return void (await maxSendMessage(maxUserId, "🛒 Выберите покрытие: глянец — 9 000 ₽ или софт-тач — 10 500 ₽. Регистрация и привязка к веб-базе не нужны.", { buttons: deckPaymentKeyboard(maxUserId) }));
   if (value === "trial") {
     const result = await grantPremiumTrial(user.id, "MAX");

@@ -5,11 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { effectiveTariff, canUserAccess } from "@/lib/access";
 import { createTelegramLinkToken } from "@/lib/telegramLink";
 import { createVkLinkToken } from "@/lib/vkLink";
+import { createMaxLinkToken } from "@/lib/maxLink";
+import { cancelAutoRenewal, resumeAutoRenewal } from "./actions";
 
 const TARIFF_LABEL: Record<string, string> = {
-  FREE: "Free",
-  STANDARD: "Standard · 590 ₽/мес",
-  PREMIUM: "Premium · 3500 ₽/мес",
+  FREE: "Бесплатный",
+  STANDARD: "Стандарт · 590 ₽/мес",
+  PREMIUM: "Премиум · 3 500 ₽/мес",
 };
 
 export default async function ProfilePage() {
@@ -20,6 +22,7 @@ export default async function ProfilePage() {
 
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
+    include: { subscription: true },
   });
   const tariff = effectiveTariff(user);
   const expired = user.tariff !== "FREE" && tariff === "FREE";
@@ -29,6 +32,10 @@ export default async function ProfilePage() {
   const vkGroupId = process.env.VK_GROUP_ID;
   const vkLinkUrl = vkGroupId
     ? `https://vk.com/im?sel=-${vkGroupId}&text=${encodeURIComponent(createVkLinkToken(user.id))}`
+    : null;
+  const maxBotUsername = process.env.MAX_BOT_USERNAME;
+  const maxLinkUrl = maxBotUsername
+    ? `https://max.ru/${maxBotUsername.replace(/^@/, "")}?start=${encodeURIComponent(createMaxLinkToken(user.id))}`
     : null;
 
   return (
@@ -55,22 +62,66 @@ export default async function ProfilePage() {
               {expired && <span className="block text-xs text-red-warning">подписка истекла</span>}
             </dd>
           </div>
-          {user.tariffExpiresAt && tariff !== "FREE" && (
+          {tariff !== "FREE" && (
             <div className="flex justify-between border-b border-void-border pb-3">
               <dt className="text-bone-dim">Действует до</dt>
-              <dd>{user.tariffExpiresAt.toLocaleDateString("ru-RU")}</dd>
+              <dd>{user.tariffExpiresAt?.getUTCFullYear() === 9999 ? "Без ограничения" : user.tariffExpiresAt?.toLocaleDateString("ru-RU") ?? "Без ограничения"}</dd>
+            </div>
+          )}
+          {user.subscription && (
+            <div id="subscription" className="border-b border-void-border pb-3">
+              <dt className="text-bone-dim">Автопродление</dt>
+              <dd className="mt-1">
+                {user.subscription.cancelAtPeriodEnd ? (
+                  <span className="text-bone-dim">
+                    Отключено. Доступ сохранится до {user.tariffExpiresAt?.toLocaleDateString("ru-RU") ?? "конца периода"}.
+                  </span>
+                ) : (
+                  <span className="text-gold-bright">
+                    Включено. Следующее списание: {user.subscription.nextChargeAt.toLocaleDateString("ru-RU")}.
+                  </span>
+                )}
+              </dd>
             </div>
           )}
           <div className="flex justify-between border-b border-void-border pb-3">
             <dt className="text-bone-dim">Telegram</dt>
-            <dd className={user.telegramChatId ? "text-green-600" : "text-bone-dim"}>
-              {user.telegramChatId ? "привязан ✓" : "не привязан"}
+            <dd>
+              {user.telegramChatId ? (
+                <span className="text-green-600">Привязан ✓</span>
+              ) : (
+                <a href={telegramLinkUrl} target="_blank" rel="noopener noreferrer" className="rounded border border-gold px-3 py-1.5 font-technical text-[10px] uppercase tracking-widest text-gold hover:bg-gold/10 hover:text-gold-bright">
+                  Привязать
+                </a>
+              )}
             </dd>
           </div>
           <div className="flex justify-between border-b border-void-border pb-3">
             <dt className="text-bone-dim">VK</dt>
-            <dd className={user.vkUserId ? "text-green-600" : "text-bone-dim"}>
-              {user.vkUserId ? "привязан ✓" : "не привязан"}
+            <dd>
+              {user.vkUserId ? (
+                <span className="text-green-600">Привязан ✓</span>
+              ) : vkLinkUrl ? (
+                <a href={vkLinkUrl} target="_blank" rel="noopener noreferrer" className="rounded border border-gold px-3 py-1.5 font-technical text-[10px] uppercase tracking-widest text-gold hover:bg-gold/10 hover:text-gold-bright">
+                  Привязать
+                </a>
+              ) : (
+                <span className="text-bone-dim">Бот настраивается</span>
+              )}
+            </dd>
+          </div>
+          <div className="flex justify-between border-b border-void-border pb-3">
+            <dt className="text-bone-dim">MAX</dt>
+            <dd>
+              {user.maxUserId ? (
+                <span className="text-green-600">Привязан ✓</span>
+              ) : maxLinkUrl ? (
+                <a href={maxLinkUrl} target="_blank" rel="noopener noreferrer" className="rounded border border-gold px-3 py-1.5 font-technical text-[10px] uppercase tracking-widest text-gold hover:bg-gold/10 hover:text-gold-bright">
+                  Привязать
+                </a>
+              ) : (
+                <span className="text-bone-dim">Бот настраивается</span>
+              )}
             </dd>
           </div>
           <div className="flex justify-between">
@@ -79,25 +130,20 @@ export default async function ProfilePage() {
           </div>
         </dl>
 
-        {!user.telegramChatId && (
-          <a
-            href={telegramLinkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
-          >
-            Привязать Telegram
-          </a>
-        )}
-
-        {!user.vkUserId && vkLinkUrl && (
-          <Link
-            href="/profile/vk-link"
-            className="mt-3 block w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright"
-          >
-            Привязать VK
-          </Link>
-        )}
+        {user.subscription?.cancelAtPeriodEnd ? (
+          <form action={resumeAutoRenewal} className="mt-6">
+            <button className="w-full rounded border border-gold py-2.5 text-center font-technical text-xs uppercase tracking-widest text-gold hover:text-gold-bright">
+              Продолжить автопродление
+            </button>
+          </form>
+        ) : user.subscription ? (
+          <form action={cancelAutoRenewal} className="mt-6 rounded border border-red-warning/50 bg-red-warning/10 p-4">
+            <p className="font-body text-sm text-bone">Автопродление отключится, но доступ останется до конца уже оплаченного периода.</p>
+            <button className="mt-3 w-full rounded border border-red-warning py-2.5 text-center font-technical text-xs uppercase tracking-widest text-red-warning hover:bg-red-warning/10">
+              Отключить автопродление
+            </button>
+          </form>
+        ) : null}
 
         <Link
           href="/tariffs"

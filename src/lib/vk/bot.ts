@@ -349,7 +349,7 @@ export async function handleVkMessage(vkUserId: string, text: string, linkToken?
   }
 
   if (trimmed.includes("Тариф")) {
-    await vkSendMessage(vkUserId, `Твой тариф: ${tariff}\nВыберите тариф — оплата откроется в Robokassa.`, { keyboard: tariffKeyboard(user.id) });
+    await vkSendMessage(vkUserId, `Твой тариф: ${tariff === "PREMIUM" ? "Премиум" : tariff === "STANDARD" ? "Стандарт" : "Бесплатный"}\nВыберите подходящий тариф — оплата откроется автоматически.`, { keyboard: tariffKeyboard(user.id) });
     return;
   }
 

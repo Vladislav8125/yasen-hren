@@ -348,7 +348,7 @@ export function createBot(token: string) {
     }
     const tariff = await effectiveTariffForChannel(user, "TELEGRAM");
     await ctx.reply(
-      `💳 ТВОЙ ТАРИФ\n${tariff}\n\nВыбери тариф — откроется защищённая страница Robokassa. После подтверждения оплаты доступ включится автоматически.`,
+      `💳 ТВОЙ ТАРИФ\n${tariff === "PREMIUM" ? "Премиум" : tariff === "STANDARD" ? "Стандарт" : "Бесплатный"}\n\nВыбери тариф — откроется защищённая страница оплаты. После подтверждения доступ включится автоматически.`,
       { reply_markup: tariffPaymentKeyboard(user.id) },
     );
   });

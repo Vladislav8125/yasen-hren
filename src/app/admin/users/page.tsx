@@ -12,6 +12,7 @@ export default async function AdminUsersPage() {
   if (me.role !== "ADMIN") redirect("/today");
 
   const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
+  const now = new Date();
 
   return (
     <main className="p-6">
@@ -24,6 +25,8 @@ export default async function AdminUsersPage() {
               <th className="py-2 pr-4">Email</th>
               <th className="py-2 pr-4">Роль</th>
               <th className="py-2 pr-4">Тариф</th>
+              <th className="py-2 pr-4">Действует до</th>
+              <th className="py-2 pr-4">Пробный тариф «Премиум»</th>
               <th className="py-2 pr-4">Сменить тариф</th>
             </tr>
           </thead>
@@ -34,6 +37,12 @@ export default async function AdminUsersPage() {
                 <td className="py-2 pr-4">{u.email}</td>
                 <td className="py-2 pr-4">{u.role}</td>
                 <td className="py-2 pr-4 text-gold-bright">{u.tariff}</td>
+                <td className={`py-2 pr-4 ${u.tariff !== "FREE" && u.tariffExpiresAt && u.tariffExpiresAt <= now ? "text-red-warning" : "text-bone-dim"}`}>
+                  {u.tariff === "FREE" ? "—" : u.tariffExpiresAt ? `${u.tariffExpiresAt.toLocaleDateString("ru-RU")}${u.tariffExpiresAt <= now ? " · истёк" : ""}` : "Не задано"}
+                </td>
+                <td className={`py-2 pr-4 ${u.premiumTrialExpiresAt && u.premiumTrialExpiresAt <= now ? "text-red-warning" : "text-bone-dim"}`}>
+                  {u.premiumTrialExpiresAt ? `${u.premiumTrialExpiresAt.toLocaleDateString("ru-RU")}${u.premiumTrialExpiresAt <= now ? " · истёк" : ""}` : "—"}
+                </td>
                 <td className="py-2 pr-4">
                   <form action={setUserTariff} className="flex gap-2">
                     <input type="hidden" name="userId" value={u.id} />
