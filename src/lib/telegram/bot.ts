@@ -34,7 +34,7 @@ function menuKeyboard(chatId: string) {
     .row()
     .text("🎁 Премиум на 10 дней")
     .row()
-    .text("📅 Консультация")
+    .text("📅 Консультация с основателем")
     .resized();
 }
 
@@ -360,7 +360,7 @@ export function createBot(token: string) {
     );
   });
 
-  bot.hears("📅 Консультация", async (ctx) => {
+  bot.hears(/^📅 Консультация(?: с основателем)?$/, async (ctx) => {
     const user = await findLinkedUser(ctx.chat.id.toString());
     if (!user) return void (await ctx.reply("🔗 Аккаунт ещё не привязан.\n\nСделай это в личном кабинете на сайте."));
     await ctx.reply("📅 Выберите формат:\n\nПремиум — консультация с основателем входит в подписку.\nРазовая консультация — отдельная встреча без подписки.", { reply_markup: founderConsultationKeyboard(user.id) });

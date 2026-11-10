@@ -25,7 +25,7 @@ function menuButtons(maxUserId: string): MaxButton[][] {
   return [
     [{ type: "callback", text: "🃏 Получить карту дня", payload: "daily" }, { type: "callback", text: "📖 Подробнее", payload: "details" }],
     [{ type: "callback", text: "➕ Вторая карта", payload: "second" }, { type: "callback", text: "🪞 Зеркало", payload: "mirror" }],
-    [{ type: "callback", text: "💳 Тариф", payload: "tariff" }, { type: "callback", text: "📅 Консультация", payload: "consultation" }],
+    [{ type: "callback", text: "💳 Тариф", payload: "tariff" }, { type: "callback", text: "📅 Консультация с основателем", payload: "consultation" }],
     [{ type: "link", text: "🛒 Купить колоду", url: deckSelectionUrl(appUrl(), "max", maxUserId) }],
     [{ type: "callback", text: "🎁 Премиум на 10 дней", payload: "trial" }],
   ];

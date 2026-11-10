@@ -1,4 +1,4 @@
-﻿name: Temporary flow2 deployment
+name: Temporary flow2 deployment
 on:
   workflow_dispatch:
 jobs:
@@ -15,19 +15,19 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -T 20 -H 188.225.25.68 >> ~/.ssh/known_hosts
       - name: Upload update
-        run: scp -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 yasen-flow2.tgz root@188.225.25.68:/root/yasen-flow2.tgz
+        run: scp -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 yasen-flow3.tgz root@188.225.25.68:/root/yasen-flow3.tgz
       - name: Build and switch isolated release
         run: |
           ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 root@188.225.25.68 '
             set -eu
             current=/opt/yasen-hren-release-20261110-checkout-ssr
-            release=/opt/yasen-hren-release-20261110-flow3
-            backup=/root/yasen-backups/20261110-before-flow3.service.conf
+            release=/opt/yasen-hren-release-20261110-flow4
+            backup=/root/yasen-backups/20261110-before-flow4.service.conf
             test -d "$current"
             test ! -e "$release"
             mkdir -p "$release"
             rsync -a --exclude=.git --exclude=node_modules --exclude=.next "$current/" "$release/"
-            tar -xzf /root/yasen-flow2.tgz -C "$release"
+            tar -xzf /root/yasen-flow3.tgz -C "$release"
             cd "$release"
             npm ci --ignore-scripts
             npx prisma generate
@@ -47,6 +47,6 @@ jobs:
               echo "Health check failed; rolled back" >&2
               exit 1
             fi
-            rm -f /root/yasen-flow2.tgz
+            rm -f /root/yasen-flow3.tgz
             echo DEPLOY_OK
           '

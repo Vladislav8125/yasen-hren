@@ -34,7 +34,7 @@ function menuKeyboard(vkUserId: string) {
       [{ action: { type: "text", label: "💳 Тариф" }, color: "secondary" }],
       [{ action: { type: "open_link", label: "🛒 Купить колоду", link: deckSelectionUrl(appUrl(), "vk", vkUserId) } }],
       [{ action: { type: "text", label: "🎁 Премиум на 10 дней" }, color: "secondary" }],
-      [{ action: { type: "text", label: "📅 Консультация" }, color: "secondary" }],
+      [{ action: { type: "text", label: "📅 Консультация с основателем" }, color: "secondary" }],
     ],
   });
 }
