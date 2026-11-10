@@ -11,7 +11,7 @@ jobs:
           DEPLOY_KEY: ${{ secrets.YASEN_TEMP_DEPLOY_KEY }}
         run: |
           install -m 700 -d ~/.ssh
-          printf '%s' "$DEPLOY_KEY" | base64 -d > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -T 20 -H 188.225.25.68 >> ~/.ssh/known_hosts
       - name: Upload update
