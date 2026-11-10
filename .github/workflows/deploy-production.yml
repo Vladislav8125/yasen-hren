@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Package source
-        run: tar -czf yasen-production-source.tgz --exclude=.git --exclude=.next --exclude=node_modules --exclude=.env --exclude='.env.*' .
+        run: git archive --format=tar "$GITHUB_SHA" | gzip -1 > yasen-production-source.tgz
 
       - name: Configure SSH
         env:
