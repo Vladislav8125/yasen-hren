@@ -1,0 +1,51 @@
+﻿name: Temporary team page deployment
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.YASEN_TEMP_DEPLOY_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -T 20 -H 188.225.25.68 >> ~/.ssh/known_hosts
+      - name: Upload update
+        run: scp -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 yasen-team.tgz root@188.225.25.68:/root/yasen-team.tgz
+      - name: Build and switch isolated release
+        run: |
+          ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 root@188.225.25.68 '
+            set -eu
+            current=/opt/yasen-hren-release-20261110-flow5
+            release=/opt/yasen-hren-release-20261110-flow6
+            backup=/root/yasen-backups/20261110-before-flow6.service.conf
+            test -d "$current"
+            test ! -e "$release"
+            mkdir -p "$release"
+            rsync -a --exclude=.git --exclude=node_modules --exclude=.next "$current/" "$release/"
+            tar -xzf /root/yasen-team.tgz -C "$release"
+            cd "$release"
+            npm ci --ignore-scripts
+            npx prisma generate
+            npx next build --webpack
+            cp /etc/systemd/system/yasen-hren.service.d/30-next-release.conf "$backup"
+            printf "[Service]\nWorkingDirectory=%s\nExecStart=\nExecStart=/usr/bin/npm start\n" "$release" > /etc/systemd/system/yasen-hren.service.d/30-next-release.conf
+            systemctl daemon-reload
+            systemctl restart yasen-hren.service
+            sleep 8
+            team=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 http://127.0.0.1:3000/knowledge/team)
+            home=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 http://127.0.0.1:3000/)
+            if ! systemctl is-active --quiet yasen-hren.service || [ "$team" != "307" ] && [ "$team" != "200" ] || [ "$home" != "200" ]; then
+              cp "$backup" /etc/systemd/system/yasen-hren.service.d/30-next-release.conf
+              systemctl daemon-reload
+              systemctl restart yasen-hren.service
+              echo "Health check failed; rolled back" >&2
+              exit 1
+            fi
+            rm -f /root/yasen-team.tgz
+            echo DEPLOY_OK
+          '

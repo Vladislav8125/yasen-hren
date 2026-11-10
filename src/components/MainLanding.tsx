@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { landingTeam } from "@/data/team";
 
 type Card = {
   name: string;
@@ -135,43 +136,6 @@ const audiences = [
     "Чтобы замечать, когда ресурс заканчивается, и не принимать важные решения из хронического истощения.",
     "/landing/audience-entrepreneurs.png",
   ],
-];
-
-const team = [
-  {
-    name: "Владислав Фемистоклов",
-    role: "Проектный директор и руководитель разработки",
-    image: "/landing/creator-perfectionist.png",
-    credentials: [
-      "Маркетолог-стратег: B2B и Data-Driven Growth",
-      "Более 7 лет в digital-стратегии и аналитике",
-      "Выстраивает процессы, тестирует гипотезы и собирает сильные команды",
-      "Переводит хаос в понятную систему роста",
-    ],
-  },
-  {
-    name: "Дмитрий Брехов",
-    role: "Научный руководитель Академии Хренологии Бытия",
-    image: "/landing/creator-ishty.png",
-    credentials: [
-      "Игропрактик и ведущий трансформационных форматов",
-      "Работает с архетипами и честным разговором о важном",
-      "Помогает увидеть ситуацию объёмнее, без готовых диагнозов",
-      "Соединяет игру, саморефлексию и практику следующего шага",
-    ],
-  },
-  {
-    name: "Елена Калашникова",
-    role: "НЮ-мастера душ — Практик Хренологии Бытия",
-    image: "/landing/creator-babushka.png",
-    credentials: [
-      "Дипломированный мастер трансформационной игры «4 Грани»",
-      "Провела более 100 консультаций",
-      "Более 20 лет моделирует жизненные ситуации",
-      "Соединяет структуру, коучинг и интуицию",
-      "Помогает идти к амбициозным целям без выгорания",
-    ],
-  },
 ];
 
 const plans = [
@@ -810,7 +774,7 @@ export function MainLanding() {
             Кто создаёт «Ясен Хрен».
           </h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {team.map((member) => (
+            {landingTeam.map((member) => (
               <article
                 key={member.name}
                 className="overflow-hidden rounded-2xl border border-void-border bg-void-elevated"
