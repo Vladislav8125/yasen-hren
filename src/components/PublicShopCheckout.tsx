@@ -216,7 +216,7 @@ export function PublicShopCheckout({
           onClick={scrollToCheckoutForm}
           className="mt-4 w-full rounded bg-red-primary px-5 py-3 font-technical text-xs uppercase tracking-widest text-parchment hover:bg-red-primary-dark"
         >
-          К контактам и доставке ↓
+          Листать вниз к оформлению ↓
         </button>
       )}
       {quote?.isPartnerPrice && (
@@ -313,18 +313,16 @@ export function PublicShopCheckout({
           </label>
         )}
         {deckMode ? (
-          <details className="rounded-lg border border-void-border px-3 py-2">
-            <summary className="cursor-pointer font-body text-sm text-bone-dim">
-              Есть промокод?
-            </summary>
+          <label className="font-body text-sm text-bone">
+            Промокод <span className="text-bone-dim">(необязательно)</span>
             <input
               name="promoCode"
               value={promoCode}
               onChange={(event) => setPromoCode(event.target.value)}
               placeholder="Введите промокод"
-              className="mt-3 w-full rounded border border-void-border bg-void px-3 py-2 text-bone"
+              className="mt-1 w-full rounded border border-void-border bg-void px-3 py-2 text-bone"
             />
-          </details>
+          </label>
         ) : (
           <label className="font-body text-sm text-bone">
             Промокод
@@ -381,7 +379,7 @@ export function PublicShopCheckout({
           disabled={loading}
           className="rounded bg-red-primary px-5 py-3 font-technical text-xs uppercase tracking-widest text-parchment disabled:opacity-50"
         >
-          {loading ? "Создаём заказ…" : "Перейти к оплате в Robokassa"}
+          {loading ? "Оформляем…" : "Приобрести"}
         </button>
       </form>
     </main>
