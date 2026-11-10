@@ -1,0 +1,114 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: yasen-hren-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the commit being deployed
+        uses: actions/checkout@v4
+
+      - name: Package source
+        run: tar -czf yasen-production-source.tgz --exclude=.git --exclude=.next --exclude=node_modules --exclude=.env --exclude='.env.*' .
+
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.YASEN_DEPLOY_KEY }}
+        run: |
+          test -n "$DEPLOY_KEY"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -T 20 -H 188.225.25.68 >> ~/.ssh/known_hosts
+
+      - name: Upload source archive
+        run: scp -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 yasen-production-source.tgz root@188.225.25.68:/root/yasen-production-source-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.tgz
+
+      - name: Build, switch, and verify on the server
+        env:
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+          DEPLOY_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 root@188.225.25.68 "DEPLOY_RUN_ID='$DEPLOY_RUN_ID' DEPLOY_RUN_ATTEMPT='$DEPLOY_RUN_ATTEMPT' bash -s" <<'REMOTE'
+          set -Eeuo pipefail
+
+          release_id="${DEPLOY_RUN_ID}-${DEPLOY_RUN_ATTEMPT}"
+          archive="/root/yasen-production-source-${release_id}.tgz"
+          release="/opt/yasen-hren-release-${release_id}"
+          service_dropin="/etc/systemd/system/yasen-hren.service.d/30-next-release.conf"
+          backup="/root/yasen-backups/${release_id}-30-next-release.conf"
+          switched=0
+
+          rollback_on_failure() {
+            result=$?
+            trap - EXIT
+            if [ "$result" -ne 0 ]; then
+              if [ "$switched" -eq 1 ]; then
+                if cp "$backup" "$service_dropin" && systemctl daemon-reload && systemctl restart yasen-hren.service; then
+                  echo "Deployment failed health checks; previous release restored." >&2
+                else
+                  echo "Deployment failed and automatic rollback did not complete; inspect the service immediately." >&2
+                fi
+              else
+                echo "Deployment failed before service switch; active release was left unchanged." >&2
+              fi
+            fi
+            rm -f "$archive"
+            exit "$result"
+          }
+          trap rollback_on_failure EXIT
+
+          current="$(systemctl show -p WorkingDirectory --value yasen-hren.service)"
+          case "$current" in
+            /opt/yasen-hren-release-*) ;;
+            *) echo "Unexpected active release path: $current" >&2; exit 1 ;;
+          esac
+          test -d "$current"
+          test -f "$current/.env"
+          test -f "$archive"
+          test ! -e "$release"
+          mkdir -p /root/yasen-backups
+          mkdir -p "$release"
+          tar -xzf "$archive" -C "$release"
+          cp -a "$current/.env" "$release/.env"
+          cd "$release"
+
+          npx --yes pnpm@9.15.9 install --frozen-lockfile
+          npx --yes pnpm@9.15.9 exec prisma generate
+          npx --yes pnpm@9.15.9 exec next build --webpack
+
+          cp "$service_dropin" "$backup"
+          printf '[Service]\nWorkingDirectory=%s\nExecStart=\nExecStart=/usr/bin/npm start\n' "$release" > "${service_dropin}.tmp-${release_id}"
+          switched=1
+          mv "${service_dropin}.tmp-${release_id}" "$service_dropin"
+          systemctl daemon-reload
+          systemctl restart yasen-hren.service
+
+          healthy=0
+          for attempt in $(seq 1 20); do
+            home_status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 http://127.0.0.1:3000/ || true)"
+            deck_status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 http://127.0.0.1:3000/deck || true)"
+            if systemctl is-active --quiet yasen-hren.service && [ "$home_status" = "200" ] && [ "$deck_status" = "200" ]; then
+              healthy=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$healthy" -ne 1 ]; then
+            echo "Health check failed: home=$home_status deck=$deck_status" >&2
+            exit 1
+          fi
+
+          switched=0
+          echo "DEPLOY_OK release=$release"
+          REMOTE
